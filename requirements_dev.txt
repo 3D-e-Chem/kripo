@@ -1,0 +1,16 @@
+pip==9.0.1
+bumpversion==0.5.3
+wheel==0.30.0
+watchdog==0.8.3
+flake8==3.5.0
+tox==2.3.1
+coverage==4.4.1
+Sphinx==1.6.5
+sphinx-click==1.0.3
+sphinx-rtd-theme==0.2.4
+
+pytest==3.2.3
+pytest-runner==3.0
+pytest-cov==2.5.1
+
+git+https://github.com/3D-e-Chem/kripodb.git
