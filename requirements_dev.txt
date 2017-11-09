@@ -8,6 +8,7 @@ coverage==4.4.1
 Sphinx==1.6.5
 sphinx-click==1.0.3
 sphinx-rtd-theme==0.2.4
+sphinx_autodoc_typehints==1.2.3
 
 pytest==3.2.3
 pytest-runner==3.0

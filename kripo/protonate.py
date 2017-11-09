@@ -10,6 +10,8 @@ from atomium.structures import Model, Atom
 def protonate_protein(pdb_block: str, timeout: int=300, flags: List[str]=('-OH', '-HIS', '-NOHETh',)) -> Tuple[str, str]:
     """Passes a pdb block through reduce program to hydrogenate it.
 
+    See http://kinemage.biochem.duke.edu/software/reduce.php .
+
     Expects `reduce` program to be in the PATH.
 
     Args:
@@ -52,17 +54,17 @@ def protonate_ligand(pdb_block: str, ph=7.4) -> str:
 
 
 def protonate(model: Model) -> Model:
-    """
+    """Hydrogenate a PDB model
 
     1. Passes generic molecules to protonate_ligand,  ligands which already contain hydrogens are skipped
     2. Take H in protonated ligand block and add to existing pdb
     3. Pass pdb to protonate_protein
 
     Args:
-        model:
+        model: The model to hydrogenate
 
     Returns:
-
+        A model with hydrogens added
     """
     max_serial_number = max([a.atom_id() for a in model.atoms()])
     h_atom_id = max_serial_number + 1
@@ -71,12 +73,9 @@ def protonate(model: Model) -> Model:
     ligands_model = Model()
     [ligands_model.add_molecule(l) for l in model.molecules(generic=True) if len(l.atoms(element='H')) == 0]
     ligands_block = ligands_model.to_file_string('pdb')
-    # print(repr(ligands_block))
     protonated_ligands_block = protonate_ligand(ligands_block)
     protonated_ligands_pdb = pdb_dict_to_pdb(pdb_string_to_pdb_dict(protonated_ligands_block))
     protonated_ligands_model = protonated_ligands_pdb.model()
-
-    # print(protonated_ligands_block)
 
     # Add hydrogens of protonated_ligands_pdb to model
     for l in protonated_ligands_model.molecules(generic=True):
@@ -98,10 +97,7 @@ def protonate(model: Model) -> Model:
 
     # Protonate whole pdb
     unprotonated_block = model.to_file_string('pdb')
-    # print(unprotonated_block)
     protonated_block = protonate_protein(unprotonated_block)
-
-    # print(protonated_block[0])
 
     protonated_pdb = pdb_dict_to_pdb(pdb_string_to_pdb_dict(protonated_block[0]))
 
