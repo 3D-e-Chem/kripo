@@ -1,9 +1,22 @@
 import pytest
 
 from intbitset import intbitset
+import numpy as np
 
-from kripo.fingerprint.threepoint import from_pharmacophore
+from kripo.fingerprint.threepoint import from_pharmacophore, BINS
 from kripo.pharmacophore import Pharmacophore, Feature
+
+
+def test_bins():
+    actual_bins = np.array(BINS)
+    expected_bins = np.array([
+        0.80, 1.60, 2.40, 3.20, 4.00,
+        4.80, 5.60, 6.40, 7.20, 8.00,
+        8.80, 9.60, 10.40, 11.20, 12.00,
+        12.80, 13.60, 14.40, 15.20, 16.00
+    ])
+    np.testing.assert_allclose(actual_bins, expected_bins)
+
 
 zero_point_phars = [
     pytest.param(

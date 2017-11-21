@@ -11,7 +11,6 @@ from .from_residues import features_from_alanine, features_from_arginine, \
 from .feature import Feature
 from ..fingerprint.threepoint import from_pharmacophore
 from ..fragment import Fragment
-from ..site import protonate
 
 
 class NoFeatures(ValueError):
@@ -51,8 +50,7 @@ def from_fragment(fragment: Fragment):
     Raises:
         NoFeatures: When constructed pharmacophore has no features
     """
-    site = protonate(fragment.site())
-    features = from_site(site)
+    features = from_site(fragment.site())
 
     features = filter_contact_features(fragment, features)
 

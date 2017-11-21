@@ -15,8 +15,10 @@ def test_protonate_protein(pdb_3heg: Pdb):
         assert len(hpdb.model().chain('A').atoms(element='H')) == 2724
 
 
-def test_protonate_ligand(pdb_3heg: Pdb):
+def test_protonate_ligand():
         # Create model which only contains ligand molecules
+        filename = 'tests/fixtures/3HEG.pdb'
+        pdb_3heg = Pdb(filename, hydrogenate=False, clean=True)
         ligands_model = Model()
         [ligands_model.add_molecule(l.molecule) for l in pdb_3heg.ligands()]
         block = ligands_model.to_file_string('pdb')

@@ -1,4 +1,8 @@
-from kripo.fragment import Fragment
+import pytest
+
+from atomium.structures import Residue
+
+from kripo.fragment import Fragment, is_residue_nearby
 from kripo.ligand import Ligand
 
 
@@ -10,6 +14,7 @@ def test_atom_names__when_fragment_is_ligand(ligand_3heg_bax: Ligand, fragment1_
     names = fragment1_3heg_bax.atom_names()
 
     expected_names = [a.name() for a in ligand_3heg_bax.molecule.atoms()]
+    expected_names.remove('H')
     assert len(names) > 0
     assert set(names) == set(expected_names)
 
@@ -18,24 +23,40 @@ def test_atom_names__when_fragment_is_not_ligand(ligand_3heg_bax: Ligand, fragme
     names = fragment2_3heg_bax.atom_names()
 
     expected_names = {a.name() for a in ligand_3heg_bax.molecule.atoms()}
+    expected_names.remove('H')
     assert 0 < len(names) < len(expected_names)
     assert expected_names.issuperset(names)
 
 
-def test_site(fragment2_3heg_bax: Fragment, ligand_3heg_bax: Ligand):
+def test_site__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
     site = fragment2_3heg_bax.site()
 
-    assert site.ligand() == ligand_3heg_bax.molecule
-    assert len(site.residues()) == 19
+    site_ligand = site.ligand()
+    assert len(site_ligand.atoms()) == 20
+    assert site_ligand.name() == 'BAX'
+    assert len(site.residues()) == 25
 
 
-def test_site1(fragment1_3heg_bax: Fragment):
+def test_site__fragment1_3heg_bax(fragment1_3heg_bax: Fragment):
     site = fragment1_3heg_bax.site()
+
     seq_nrs = [int(r.residue_id().replace('A', '')) for r in site.residues()]
     seq_nrs.sort()
-    [print(s) for s in seq_nrs]
-    print(len(seq_nrs))
-    assert False
+    expected = {138, 140, 141, 146, 147, 148, 149, 151, 157, 30, 35, 166, 167, 40, 169, 168, 38, 51, 53, 71, 74, 75, 78, 83, 84, 86, 104, 106, 107, 108, 109, 110}
+    assert expected == set(seq_nrs)
+
+
+def test_site_yasara_fragment(yasara_fragment2_3heg_bax: Fragment):
+    site = yasara_fragment2_3heg_bax.site()
+
+    seq_nrs = {int(r.residue_id().replace('A', '')) for r in site.residues()}
+    filename = 'tests/fixtures/3HEG.frag2.site.pdb'
+    from atomium.files import pdb_from_file
+    expected_pdb = pdb_from_file(filename).model()
+    expected = {int(r.residue_id().replace('A', '')) for r in expected_pdb.residues()}
+    # The yasara selection and this selection implementation have different prep steps and behaviors
+    # They should show enough overlap
+    assert len(seq_nrs & expected) > 20
 
 
 def test_nr_r_groups(fragment2_3heg_bax: Fragment):
@@ -76,3 +97,20 @@ def test_mol_block__when_fragment_is_not_ligand(fragment2_3heg_bax: Fragment):
     assert 'END' in mol_block
     assert len(mol_block.split('\n')) == 51
     # TODO compare whole block instead of pieces
+
+
+def test_is_residue_nearby__nothing_in__false():
+    fragment_atoms = set()
+    residue = Residue()
+    radius = 6.0
+    assert not is_residue_nearby(fragment_atoms, residue, radius)
+
+
+def test_is_residue_nearby__radiustoobig_valueerror():
+    fragment_atoms = set()
+    residue = Residue()
+    radius = 999999999.0
+    with pytest.raises(ValueError) as excinfo:
+        is_residue_nearby(fragment_atoms, residue, radius)
+
+    assert 'Radius must be smaller than' in str(excinfo.value)

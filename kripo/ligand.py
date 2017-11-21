@@ -56,7 +56,8 @@ class Ligand:
             List[Fragment]: Ordered by weight, heaviest first
 
         """
-        reactant = MolFromPDBBlock(self.pdb_block())
+        block = self.pdb_block()
+        reactant = MolFromPDBBlock(block)
         mols = [reactant]
         products = Reactor().react(reactant)
         mols.extend(products)

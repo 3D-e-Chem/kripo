@@ -54,3 +54,12 @@ def fragment1_3heg_bax(fragments_3heg_bax):
 @pytest.fixture(scope="module")
 def fragment2_3heg_bax(fragments_3heg_bax):
     return fragments_3heg_bax[1]
+
+
+@pytest.fixture(scope="module")
+def yasara_fragment2_3heg_bax():
+    filename = 'tests/fixtures/3HEG.frag2.pdb'
+    pdb = Pdb(filename)
+    ligand = list(pdb.ligands())[0]
+    frags = ligand.fragments()
+    return frags[0]

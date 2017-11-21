@@ -1,11 +1,26 @@
 from hashlib import md5
+from typing import Set
 
 from atomium.structures.chains import Site
-from atomium.structures.molecules import Molecule
+from atomium.structures.molecules import Molecule, Residue
+from atomium.structures.atoms import Atom
 from rdkit.Chem import Mol, MolToSmiles, MolToMolBlock
 
 """Residues within radius of ligand are site residues"""
 BINDING_SITE_RADIUS = 6
+
+
+def is_residue_nearby(fragment_atoms: Set[Atom], residue: Residue, radius: float) -> bool:
+    residue_atoms = residue.atoms()
+    min_distance = 9999.0
+    if radius > min_distance:
+        raise ValueError("Radius must be smaller than {0}".format(min_distance))
+    for fragment_atom in fragment_atoms:
+        for residue_atom in residue_atoms:
+                dist = fragment_atom.distance_to(residue_atom)
+                if dist < min_distance:
+                    min_distance = dist
+    return min_distance < radius
 
 
 class Fragment:
@@ -29,19 +44,24 @@ class Fragment:
         """
         return [a.GetPDBResidueInfo().GetName().strip() for a in self.molecule.GetAtoms() if a.GetPDBResidueInfo() is not None]
 
-    def atoms(self):
+    def atoms(self) -> Set[Atom]:
         """Atoms of fragment
 
-        Yields:
-            atoms.html#atomium.structures.atoms.Atom: An atom
+        Returns:
+            collection of atoms
         """
         fragment_names = set(self.atom_names())
-        for atom in self.parent.atoms(exclude="H"):
+        atoms = set()
+
+        for atom in self.parent.atoms():
             if atom.name() in fragment_names:
-                yield atom
+                atoms.add(atom)
+        return atoms
 
     def site(self, radius=BINDING_SITE_RADIUS) -> Site:
         """Site of fragment
+
+        If part of residue is inside radius then it is included in site.
 
         Args:
             radius (float): Radius of ligand within residues are included in site
@@ -49,18 +69,15 @@ class Fragment:
         Returns:
             atomium.structures.chains.Site: Site
         """
-        atoms = self.parent.atoms(exclude="H")
-        nearby = set()
-        # assume atom names of parent have been retained in fragment rdkit molecule
-        fragment_names = set(self.atom_names())
-        for atom in atoms:
-            if atom.name() in fragment_names:
-                nearby.update(atom.nearby(radius, exclude="H"))
-        # residues excluding parent atoms
-        residues = [atom.residue() for atom in nearby if atom not in atoms]
+        fragment_atoms = self.atoms()
+        atoms_of_near_residues = set()
+        residues = self.parent.model().residues()
+        for residue in residues:
+            if is_residue_nearby(fragment_atoms, residue, radius):
+                atoms_of_near_residues.update(residue.atoms())
 
-        # TODO add hydrogens?
-        return Site(*residues, ligand=self.parent)
+        ligand = Molecule(*fragment_atoms, molecule_id=self.parent.molecule_id(), name=self.parent.name())
+        return Site(*atoms_of_near_residues, ligand=ligand)
 
     def nr_r_groups(self):
         """Number of R groups in fragment

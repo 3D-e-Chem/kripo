@@ -2,7 +2,7 @@ from kripo.fragment import Fragment
 from kripo.pharmacophore import from_fragment, Feature
 
 
-def test_from_fragment(fragment2_3heg_bax: Fragment):
+def test_from_fragment__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
     pharmacophore = from_fragment(fragment2_3heg_bax)
 
     expected_features = {
@@ -27,7 +27,7 @@ def test_from_fragment(fragment2_3heg_bax: Fragment):
     assert pharmacophore.features == expected_features
 
 
-def test_from_fragment1(fragment1_3heg_bax):
+def test_from_fragment__fragment1_3heg_bax(fragment1_3heg_bax):
     pharmacophore = from_fragment(fragment1_3heg_bax)
 
     for f in pharmacophore.features:

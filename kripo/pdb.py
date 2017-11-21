@@ -1,10 +1,10 @@
 from typing import List
 
 import atomium
-from atomium.structures import Model
 from atomium.structures.molecules import Molecule
 
 from .ligand import Ligand
+from .protonate import protonate
 
 """Unwanted heteros, like solvents, metals, sugars, etc."""
 UNWANTED_HETEROS = {
@@ -39,11 +39,8 @@ UNWANTED_HETEROS = {
 LIGAND_MAX_MASS = 800  #
 """Minimum size for ligand structures"""
 LIGAND_MIN_MASS = 50  #
-"""Maximum allowed distance of ligand to protein
- 
-Added 1.0 for hydrogen bond as ligand and protein or missing hydrogens
-"""
-MAX_CONTACT_DISTANCE = 2.5 + 1.0
+"""Maximum allowed distance of ligand to protein"""
+MAX_CONTACT_DISTANCE = 2.5
 
 
 class NoLigands(ValueError):
@@ -59,8 +56,10 @@ class Pdb:
         model (atomium.structures.models.Model): Atomium model of first model in pdb
 
     """
-    def __init__(self, path):
+    def __init__(self, path, hydrogenate=True, clean=True):
         """Construct PDB from file path
+
+        Protonates the protein and ligands.
 
         Cleans pdb by removing molecules which:
         * Have name in UNWANTED_HETEROS list
@@ -70,11 +69,15 @@ class Pdb:
 
         Args:
             path (str): Path to PDB file
+
         """
         self.path = path
         self.pdb = atomium.pdb_from_file(path)
-        self.model = self.pdb.model()  # first model
-        self._clean()
+        self.model = self.pdb.model()
+        if hydrogenate:
+            self.model = protonate(self.pdb.model())
+        if clean:
+            self._clean()
 
     def _clean(self):
         unique_names = set()
@@ -103,7 +106,10 @@ class Pdb:
         """Ligands of pdb
 
         Returns:
-            List[Ligand]: Unique list of ligands
+            Unique list of ligands
+
+        Raises:
+            NoLigands: When PDB has no ligands, after cleaning
 
         """
         ligs = {mol.name(): Ligand(mol) for mol in self.model.molecules(generic=True, water=False)}
@@ -114,11 +120,11 @@ class Pdb:
     def pdb_block(self):
         return self.model.to_file_string('pdb')
 
-    def code(self):
+    def code(self) -> str:
         """Code of pdb
 
         Returns:
-            str: Code of pdb
+            Code of pdb
 
         """
         return self.pdb.code()
