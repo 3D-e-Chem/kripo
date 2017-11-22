@@ -1,4 +1,6 @@
-from kripo.pdb import Pdb
+from atomium.files.pdb import Pdb
+
+from kripo.pdb import ligands
 
 
 def test_code(pdb_3heg: Pdb):
@@ -6,14 +8,12 @@ def test_code(pdb_3heg: Pdb):
 
 
 def test_ligands(pdb_3heg: Pdb):
-    ligands = pdb_3heg.ligands()
-    ligand_names = [l.name() for l in ligands]
+    ligand_names = [l.name() for l in ligands(pdb_3heg)]
 
     assert ligand_names == ['BAX']
 
 
 def test_ligands__firstinstance(pdb_5is0: Pdb):
-    ligands = pdb_5is0.ligands()
-    ligand_names = [l.name() for l in ligands]
+    ligand_names = [l.name() for l in ligands(pdb_5is0)]
 
     assert ligand_names == ['6ET']

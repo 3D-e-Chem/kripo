@@ -13,10 +13,9 @@ def test_parent(ligand_3heg_bax: Ligand, fragment1_3heg_bax: Fragment):
 def test_atom_names__when_fragment_is_ligand(ligand_3heg_bax: Ligand, fragment1_3heg_bax: Fragment):
     names = fragment1_3heg_bax.atom_names()
 
-    expected_names = [a.name() for a in ligand_3heg_bax.molecule.atoms()]
-    expected_names.remove('H')
+    expected_names = {a.name() for a in ligand_3heg_bax.molecule.atoms() if a.name() != 'H'}
     assert len(names) > 0
-    assert set(names) == set(expected_names)
+    assert set(names) == expected_names
 
 
 def test_atom_names__when_fragment_is_not_ligand(ligand_3heg_bax: Ligand, fragment2_3heg_bax: Fragment):

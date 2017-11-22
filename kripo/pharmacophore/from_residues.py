@@ -40,6 +40,8 @@ def closest_to(atoms, ligand):
 def features_from_backbone_amine(residue: Residue, ligand):
     nitrogen = residue.atom(name='N')
     hydrogen = closest_to([a for a in nitrogen.bonded_atoms() if a.element() == 'H'], ligand)
+    if not hydrogen:
+        return set()
 
     feature_pos = feature_pos_of_bond(hydrogen, nitrogen, O_dist)
     feature = Feature('HACC', feature_pos)

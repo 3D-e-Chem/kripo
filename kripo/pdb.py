@@ -1,7 +1,9 @@
 from typing import List
 
 import atomium
+from atomium.structures import Model
 from atomium.structures.molecules import Molecule
+from atomium.files.pdb import Pdb
 
 from .ligand import Ligand
 from .protonate import protonate
@@ -47,89 +49,101 @@ class NoLigands(ValueError):
     pass
 
 
-class Pdb:
-    """Protein databank entry
+def ligands(pdb: Pdb) -> List[Ligand]:
+    """Ligands of a pdb
 
-    Attributes:
-        path: File path of entry
-        pdb (atomium.files.pdb.Pdb): Atomium PDB object
-        model (atomium.structures.models.Model): Atomium model of first model in pdb
+    Args:
+        pdb: The pdb
 
+    Raises:
+        NoLigands: When PDB has no ligands
+
+    Returns:
+        List of ligands
     """
-    def __init__(self, path, hydrogenate=True, clean=True):
-        """Construct PDB from file path
+    model = pdb.model()
+    ligs = {mol.name(): Ligand(mol) for mol in model.molecules(generic=True)}
+    if not ligs:
+        raise NoLigands()
+    return list(ligs.values())
 
-        Protonates the protein and ligands.
 
-        Cleans pdb by removing molecules which:
+def pdb_from_file(path, hydrogenate=True, clean=True) -> Pdb:
+    """Construct Pdb object from a PDB file
+
+    Args:
+        path: Path to PDB file
+        hydrogenate: Whether to add hydrogens
+        clean: Whether to remove unwanted molecules
+
+    Returns:
+        Protein databank entry
+    """
+    pdb = atomium.pdb_from_file(path)
+    return pdb_from_atomium_pdb(pdb, hydrogenate, clean)
+
+
+def pdb_from_atomium_pdb(pdb: Pdb, hydrogenate=True, clean=True) -> Pdb:
+    """Construct a PDB entry from a Atomium pdb
+
+    Args:
+        pdb: Atomium PDB entry
+        hydrogenate: Whether to add hydrogens
+        clean: Whether to remove unwanted molecules
+
+    Returns:
+        A PDB entry which can optionally be hydrogenated and have it unwanted molecules removed.
+    """
+    if hydrogenate:
+        pdb = protonate(pdb)
+    if clean:
+        remove_unwanted_molecules(pdb)
+    return pdb
+
+
+def remove_unwanted_molecules(pdb: Pdb):
+    """Remove unwanted molecules from model
+
+    Cleans pdb by removing molecules which:
         * Have name in UNWANTED_HETEROS list
         * Is out side LIGAND_MAX_MASS..LIGAND_MIN_MASS mass range
         * Is more then MAX_CONTACT_DISTANCE away from protein
         * Have name already processed (aka removes duplicates)
 
-        Args:
-            path (str): Path to PDB file
+    Removing is done in-place.
 
-        """
-        self.path = path
-        self.pdb = atomium.pdb_from_file(path)
-        self.model = self.pdb.model()
-        if hydrogenate:
-            self.model = protonate(self.pdb.model())
-        if clean:
-            self._clean()
+    Args:
+        pdb: Atomium PDB entry containing possible unwanted molecules
 
-    def _clean(self):
-        unique_names = set()
-        for mol in sorted(self.model.molecules(generic=True), key=lambda m: m.molecule_id()):
-            is_unwanted = mol.name() in UNWANTED_HETEROS
-            in_mass_range = LIGAND_MIN_MASS < mol.mass() < LIGAND_MAX_MASS
-            in_contact_with_protein = self._min_distance(mol) < MAX_CONTACT_DISTANCE
-            seen_before = mol.name() in unique_names
-            if is_unwanted or not in_mass_range or not in_contact_with_protein or seen_before:
-                self.model.remove_molecule(mol)
-            else:
-                unique_names.add(mol.name())
+    """
+    unique_names = set()
+    model = pdb.model()
+    for mol in sorted(model.molecules(generic=True), key=lambda m: m.molecule_id()):
+        is_unwanted = mol.name() in UNWANTED_HETEROS
+        in_mass_range = LIGAND_MIN_MASS < mol.mass() < LIGAND_MAX_MASS
+        in_contact_with_protein = ligand_contacts_protein(mol, model)
+        seen_before = mol.name() in unique_names
+        if is_unwanted or not in_mass_range or not in_contact_with_protein or seen_before:
+            model.remove_molecule(mol)
+        else:
+            unique_names.add(mol.name())
 
-    def _min_distance(self, ligand: Molecule):
-        """Calculate the minimum distance any atom of a ligand is from any atom of the protein chains"""
-        dist = 999.0
-        for latom in ligand.atoms():
-            for chain in self.model.chains():
-                for patom in chain.atoms():
-                    ndist = latom.distance_to(patom)
-                    if ndist < dist:
-                        dist = ndist
-        return dist
 
-    def ligands(self) -> List[Ligand]:
-        """Ligands of pdb
+def ligand_contacts_protein(ligand: Molecule, model: Model) -> bool:
+    """Determines if molecule is in contact with protein
 
-        Returns:
-            Unique list of ligands
+    Args:
+        ligand: The molecule
+        model: Model containing protein chains
 
-        Raises:
-            NoLigands: When PDB has no ligands, after cleaning
-
-        """
-        ligs = {mol.name(): Ligand(mol) for mol in self.model.molecules(generic=True, water=False)}
-        if not ligs:
-            raise NoLigands()
-        return list(ligs.values())
-
-    def pdb_block(self):
-        return self.model.to_file_string('pdb')
-
-    def code(self) -> str:
-        """Code of pdb
-
-        Returns:
-            Code of pdb
-
-        """
-        return self.pdb.code()
-
-    def scop_classification(self):
-        # TODO see if needed and if so then implement
-        pass
-
+    Returns:
+        True if in contact and false when not in contact
+    """
+    dist = 999.0
+    for latom in ligand.atoms():
+        for chain in model.chains():
+            for patom in chain.atoms():
+                ndist = latom.distance_to(patom)
+                if ndist < dist:
+                    dist = ndist
+    return dist < MAX_CONTACT_DISTANCE

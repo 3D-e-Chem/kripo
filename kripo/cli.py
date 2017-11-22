@@ -11,7 +11,7 @@ from .fingerprint.threepoint import BIT_INFO
 from .fragment import Fragment
 from .ligand import Ligand
 from .pharmacophore import from_fragment, NoFeatures
-from .pdb import Pdb
+from .pdb import pdb_from_file, ligands
 from .site import chain_of_site
 
 
@@ -64,10 +64,16 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
 
     """
     click.echo('Parsing {0}'.format(pdb_fn))
-    pdb = Pdb(pdb_fn)
-    for ligand in pdb.ligands():
+    pdb = pdb_from_file(pdb_fn)
+    for ligand in ligands(pdb):
         for frag_nr, fragment in enumerate(ligand.fragments(), 1):
-            generate_from_fragment(pdb, ligand, fragment, frag_nr, fragments_db, pharmacophore_points, fingerprints_dict)
+            generate_from_fragment(pdb,
+                                   ligand,
+                                   fragment,
+                                   frag_nr,
+                                   fragments_db,
+                                   pharmacophore_points,
+                                   fingerprints_dict)
 
 
 def generate_from_fragment(pdb, ligand, fragment, frag_nr, fragments_db, pharmacophore_points, fingerprints_dict):

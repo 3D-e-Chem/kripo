@@ -103,40 +103,44 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1):
                     'bin': bin_distance(dist_matrix[b][c], BINS)
                 }]
                 distances.sort(key=lambda d: (d['bin'], ord(d['id'])))
-                print(distances)
+                # print(distances)
 
                 bit_info = distances[0]['id'] + distances[1]['id'] + distances[2]['id']
                 bit_info += chr(distances[0]['bin'] + 97) + chr(distances[1]['bin'] + 97) + chr(distances[2]['bin'] + 97)
                 bit_index = BIT_INFO[bit_info]
-                print((bit_info, bit_index,))
+                # print((bit_info, bit_index,))
                 bits.add(bit_index)
 
-                for i in range((0 - fuzzy_factor), fuzzy_factor + 1):
-                    for j in range((0 - fuzzy_factor), fuzzy_factor + 1):
-                        for k in range((0 - fuzzy_factor), fuzzy_factor + 1):
-                            if nr_bins + 1 < distances[0]['bin'] + i or distances[0]['bin'] + i < 0 or \
-                                    nr_bins + 1 < distances[1]['bin'] + j or distances[1]['bin'] + j < 0 or \
-                                    nr_bins + 1 < distances[2]['bin'] + k or distances[2]['bin'] + k < 0:
-                                continue
-                            # print([nr_bins, distances[0]['bin'] + i, distances[1]['bin'] + j, distances[2]['bin'] + k])
-
-                            fdistances = [{
-                                'id': distances[0]['id'],
-                                'bin': distances[0]['bin'] + i,
-                            }, {
-                                'id': distances[1]['id'],
-                                'bin': distances[1]['bin'] + j,
-                            }, {
-                                'id': distances[2]['id'],
-                                'bin': distances[2]['bin'] + k,
-                            }]
-                            fdistances.sort(key=lambda d: (d['bin'], ord(d['id'])))
-                            print(fdistances)
-
-                            bit_info = fdistances[0]['id'] + fdistances[1]['id'] + fdistances[2]['id']
-                            bit_info += chr(fdistances[0]['bin'] + 97) + chr(fdistances[1]['bin'] + 97) + chr(fdistances[2]['bin'] + 97)
-                            bit_index = BIT_INFO[bit_info]
-                            print((bit_info, bit_index, 'fuzzy' , i, j, k))
-                            bits.add(bit_index)
+                # for i in range((0 - fuzzy_factor), fuzzy_factor + 1):
+                #     for j in range((0 - fuzzy_factor), fuzzy_factor + 1):
+                #         for k in range((0 - fuzzy_factor), fuzzy_factor + 1):
+                #             # test if is bit outside bins
+                #             bin_i = distances[0]['bin'] + i
+                #             bin_j = distances[0]['bin'] + j
+                #             bin_k = distances[0]['bin'] + k
+                #             if nr_bins <= bin_i or bin_i < 0 or \
+                #                     nr_bins <= bin_j or bin_j < 0 or \
+                #                     nr_bins <= bin_k or bin_k < 0:
+                #                 continue
+                #             # print([nr_bins, distances[0]['bin'] + i, distances[1]['bin'] + j, distances[2]['bin'] + k])
+                #
+                #             fdistances = [{
+                #                 'id': distances[0]['id'],
+                #                 'bin': bin_i,
+                #             }, {
+                #                 'id': distances[1]['id'],
+                #                 'bin': bin_j,
+                #             }, {
+                #                 'id': distances[2]['id'],
+                #                 'bin': bin_k,
+                #             }]
+                #             fdistances.sort(key=lambda d: (d['bin'], ord(d['id'])))
+                #             # print(fdistances)
+                #
+                #             bit_info = fdistances[0]['id'] + fdistances[1]['id'] + fdistances[2]['id']
+                #             bit_info += chr(fdistances[0]['bin'] + 97) + chr(fdistances[1]['bin'] + 97) + chr(fdistances[2]['bin'] + 97)
+                #             bit_index = BIT_INFO[bit_info]
+                #             # print((bit_info, bit_index, 'fuzzy' , i, j, k))
+                #             bits.add(bit_index)
 
     return intbitset(bits)

@@ -2,6 +2,7 @@ import subprocess
 from typing import Tuple, List
 
 import pybel
+from atomium.files.pdb import Pdb
 from atomium.files.pdbdict2pdb import pdb_dict_to_pdb
 from atomium.files.pdbstring2pdbdict import pdb_string_to_pdb_dict
 from atomium.structures import Model, Atom
@@ -53,19 +54,20 @@ def protonate_ligand(pdb_block: str, ph=7.4) -> str:
     return mol.write('pdb')
 
 
-def protonate(model: Model) -> Model:
-    """Hydrogenate a PDB model
+def protonate(pdb: Pdb) -> Pdb:
+    """Hydrogenate a first model of PDB
 
     1. Passes generic molecules to protonate_ligand,  ligands which already contain hydrogens are skipped
     2. Take H in protonated ligand block and add to existing pdb
     3. Pass pdb to protonate_protein
 
     Args:
-        model: The model to hydrogenate
+        pdb: The pdb to hydrogenate
 
     Returns:
-        A model with hydrogens added
+        A pdb with hydrogens added
     """
+    model = pdb.model()
     max_serial_number = max([a.atom_id() for a in model.atoms()])
     h_atom_id = max_serial_number + 1
 
@@ -96,11 +98,7 @@ def protonate(model: Model) -> Model:
                     h_atom_id += 1
 
     # Protonate whole pdb
-    unprotonated_block = model.to_file_string('pdb')
+    unprotonated_block = pdb.to_file_string()
     protonated_block = protonate_protein(unprotonated_block)
 
-    protonated_pdb = pdb_dict_to_pdb(pdb_string_to_pdb_dict(protonated_block[0]))
-
-    protonated_model = protonated_pdb.model()
-
-    return protonated_model
+    return pdb_dict_to_pdb(pdb_string_to_pdb_dict(protonated_block[0]))
