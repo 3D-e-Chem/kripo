@@ -10,15 +10,16 @@ def test_parent(ligand_3heg_bax: Ligand, fragment1_3heg_bax: Fragment):
     assert fragment1_3heg_bax.parent == ligand_3heg_bax.molecule
 
 
-def test_atom_names__when_fragment_is_ligand(ligand_3heg_bax: Ligand, fragment1_3heg_bax: Fragment):
+def test_atom_names__when_fragment_is_whole_ligand(ligand_3heg_bax: Ligand, fragment1_3heg_bax: Fragment):
     names = fragment1_3heg_bax.atom_names()
 
-    expected_names = {a.name() for a in ligand_3heg_bax.molecule.atoms() if a.name() != 'H'}
+    expected_names = {a.name() for a in ligand_3heg_bax.molecule.atoms()}
+    expected_names.remove('H')
     assert len(names) > 0
     assert set(names) == expected_names
 
 
-def test_atom_names__when_fragment_is_not_ligand(ligand_3heg_bax: Ligand, fragment2_3heg_bax: Fragment):
+def test_atom_names__when_fragment_is_part_ofligand(ligand_3heg_bax: Ligand, fragment2_3heg_bax: Fragment):
     names = fragment2_3heg_bax.atom_names()
 
     expected_names = {a.name() for a in ligand_3heg_bax.molecule.atoms()}
@@ -27,35 +28,109 @@ def test_atom_names__when_fragment_is_not_ligand(ligand_3heg_bax: Ligand, fragme
     assert expected_names.issuperset(names)
 
 
+def seq_nrs_of_site(site):
+    return {int(r.residue_id().replace('A', '')) for r in site.residues()}
+
+
 def test_site__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
     site = fragment2_3heg_bax.site()
 
     site_ligand = site.ligand()
-    assert len(site_ligand.atoms()) == 20
+    assert len(site_ligand.atoms()) == 29
     assert site_ligand.name() == 'BAX'
-    assert len(site.residues()) == 25
+    seq_nrs = seq_nrs_of_site(site)
+    expected = {
+        35,
+        38,
+        51,
+        53,
+        55,
+        70,
+        71,
+        74,
+        75,
+        78,
+        83,
+        84,
+        86,
+        104,
+        106,
+        109,
+        138,
+        140,
+        141,
+        146,
+        147,
+        148,
+        149,
+        151,
+        155,
+        166,
+        167,
+        168,
+        169}
+    assert expected == seq_nrs
 
 
 def test_site__fragment1_3heg_bax(fragment1_3heg_bax: Fragment):
     site = fragment1_3heg_bax.site()
 
-    seq_nrs = [int(r.residue_id().replace('A', '')) for r in site.residues()]
-    seq_nrs.sort()
-    expected = {138, 140, 141, 146, 147, 148, 149, 151, 157, 30, 35, 166, 167, 40, 169, 168, 38, 51, 53, 71, 74, 75, 78, 83, 84, 86, 104, 106, 107, 108, 109, 110}
-    assert expected == set(seq_nrs)
+    seq_nrs = seq_nrs_of_site(site)
 
+    """Expected seq nrs was calculated using Yasara script::
 
-def test_site_yasara_fragment(yasara_fragment2_3heg_bax: Fragment):
-    site = yasara_fragment2_3heg_bax.site()
+        LoadPDB tests/fixtures/3HEG.prepped.pdb,Center=No,Correct=No
+        DelRes HOH
+        DelRes protein with distance > 6 from bax
+        DelRes BAX
+        SavePDB 1,tests/fixtures/3heg_BAX_frag1.prepped.site.pdb,Format=PDB,Transform=No
 
-    seq_nrs = {int(r.residue_id().replace('A', '')) for r in site.residues()}
-    filename = 'tests/fixtures/3HEG.frag2.site.pdb'
-    from atomium.files import pdb_from_file
-    expected_pdb = pdb_from_file(filename).model()
-    expected = {int(r.residue_id().replace('A', '')) for r in expected_pdb.residues()}
-    # The yasara selection and this selection implementation have different prep steps and behaviors
-    # They should show enough overlap
-    assert len(seq_nrs & expected) > 20
+    and the Python snippet::
+
+        from atomium.files import pdb_from_file
+        p = pdb_from_file('3heg_BAX_frag1.prepped.site.pdb').model()
+        seq_nrs = sorted([int(r.residue_id().replace('A', '')) for r in p.residues()])
+    """
+    expected = {
+        30,
+        35,
+        36,
+        38,
+        40,
+        51,
+        53,
+        55,
+        70,
+        71,
+        74,
+        75,
+        78,
+        83,
+        84,
+        86,
+        104,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        138,
+        140,
+        141,
+        146,
+        147,
+        148,
+        149,
+        151,
+        155,
+        157,
+        166,
+        167,
+        168,
+        169
+    }
+    assert expected == seq_nrs
 
 
 def test_nr_r_groups(fragment2_3heg_bax: Fragment):
