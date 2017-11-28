@@ -6,21 +6,22 @@ from kripo.pdb import Pdb, pdb_from_file, ligands
 from kripo.protonate import protonate_protein, protonate_ligand, protonate
 
 
-def test_protonate_protein(pdb_3heg: Pdb):
-        block = pdb_3heg.model().chain('A').to_file_string('pdb')
+def test_protonate_protein(orig_pdb_3heg: Pdb):
+    block = orig_pdb_3heg.model().chain('A').to_file_string('pdb')
+    # Verify input contains no hydrogens
+    assert len(orig_pdb_3heg.model().chain('A').atoms(element='H')) == 0
 
-        hblock, err = protonate_protein(block)
+    hblock, err = protonate_protein(block)
 
-        hpdb = pdb_string2pdb(hblock)
-        assert len(hpdb.model().chain('A').atoms(element='H')) == 2724
+    hpdb = pdb_string2pdb(hblock)
+    assert len(hpdb.model().chain('A').atoms(element='H')) == 2702
 
 
-def test_protonate_ligand():
+def test_protonate_ligand(orig_pdb_3heg: Pdb):
     # Create model which only contains ligand molecules
-    filename = 'tests/fixtures/3HEG.pdb'
-    pdb_3heg = pdb_from_file(filename, hydrogenate=False, clean=False)
     ligands_model = Model()
-    [ligands_model.add_molecule(l.molecule) for l in ligands(pdb_3heg)]
+    bax = orig_pdb_3heg.model().molecule(name='BAX')
+    ligands_model.add_molecule(bax)
     block = ligands_model.to_file_string('pdb')
     # Verify input contains no hydrogens
     assert len(ligands_model.atoms(element='H')) == 0
@@ -29,13 +30,12 @@ def test_protonate_ligand():
 
     hpdb = pdb_string2pdb(hblock)
     hmodel = hpdb.model()
-    assert len(hmodel.atoms(element='H')) == 18
+    assert len(hmodel.atoms(element='H')) == 16
 
 
-def test_protonate_pdb_3heg():
-    unprotonated = pdb_from_file('tests/fixtures/3HEG.pdb', hydrogenate=False, clean=False)
-    protonated = protonate(unprotonated)
-    assert len(protonated.model().atoms(element='H')) == 2958
+def test_protonate_pdb_3heg(orig_pdb_3heg: Pdb):
+    protonated = protonate(orig_pdb_3heg)
+    assert len(protonated.model().atoms(element='H')) == 2936
 
 
 def test_protonate_pdb_3rze():
