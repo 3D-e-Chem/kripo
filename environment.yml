@@ -45,7 +45,7 @@ dependencies:
 - pip:
   - alabaster==0.7.10
   - argh==0.26.2
-  - atomium==0.6.0
+  - atomium==0.7.0
   - babel==2.5.1
   - biopython==1.70
   - bleach==2.1.1
