@@ -75,3 +75,19 @@ def vector_rotate(v, angle, axis):
             v2[i] += r[i][j] * v[j]
 
     return v2
+
+
+def above(pos, offset, factor):
+    return (
+        pos[0] + offset[0] * factor,
+        pos[1] + offset[1] * factor,
+        pos[2] + offset[2] * factor,
+    )
+
+
+def below(pos, offset, factor):
+    return (
+        pos[0] - offset[0] * factor,
+        pos[1] - offset[1] * factor,
+        pos[2] - offset[2] * factor,
+    )

@@ -1,41 +1,20 @@
 from typing import Set
+import json
 
 from atomium.files.pdbdict2pdb import pdb_dict_to_pdb
 from atomium.files.pdbstring2pdbdict import pdb_string_to_pdb_dict
 from atomium.structures.chains import Site
 import pytest
-from rdkit.Chem.rdDistGeom import EmbedMolecule
-from rdkit.Chem.rdMolAlign import AlignMol
-from rdkit.Chem.rdmolfiles import MolFromPDBBlock, MolToPDBBlock
-from rdkit.Chem.rdmolops import AddHs
 
+from kripo.ligand import Ligand
 from kripo.pharmacophore import Feature, from_site
+from kripodb.pharmacophores import as_phar
 
 
-def prep_site(block):
-    mol = MolFromPDBBlock(block)
-    # Hydronate molecule
-    m2 = AddHs(mol)
-    coordMap = {}
-    atomMap = []
-    conf = mol.GetConformer()
-    for i in range(mol.GetNumAtoms()):
-        coordMap[i] = conf.GetAtomPosition(i)
-        atomMap.append((i, i,))
-
-    # params = ETKDG()
-    # params.coordMap = coordMap
-    # params.randomSeed = 42
-    # EmbedMolecule(m2, params)
-    EmbedMolecule(m2, coordMap=coordMap, randomSeed=42, useBasicKnowledge=True)
-    AlignMol(m2, mol, atomMap=atomMap)
-
-    protonated_block = MolToPDBBlock(m2)
-    ligand = """HETATM 2706  C1  BAX A   1      -1.978   2.259  25.948  1.00 25.24           C
-"""
-    out_block = ligand + protonated_block
-    model = pdb_dict_to_pdb(pdb_string_to_pdb_dict(out_block)).model()
-    return Site(model, ligand=model.molecule(name='BAX'))
+def prep_site(block, ligand):
+    model = pdb_dict_to_pdb(pdb_string_to_pdb_dict(block)).model()
+    model.add_molecule(ligand)
+    return Site(model, ligand=ligand)
 
 
 def assert_features(expected: Set[Feature], result: Set[Feature]):
@@ -45,180 +24,214 @@ def assert_features(expected: Set[Feature], result: Set[Feature]):
 
 
 ALA = pytest.param(
-    """ATOM   2432  N   ALA A 320      -7.954  -5.611  36.611  1.00 37.45           N  
-ATOM   2433  CA  ALA A 320      -6.613  -5.159  36.864  1.00 37.02           C  
-ATOM   2434  C   ALA A 320      -6.315  -4.998  38.349  1.00 37.13           C  
-ATOM   2435  O   ALA A 320      -7.194  -4.648  39.136  1.00 35.74           O  
-ATOM   2436  CB  ALA A 320      -6.373  -3.834  36.140  1.00 37.00           C  
+    """ATOM    260  N   ALA A  40      10.884  -2.262  13.847  1.00 39.68           N  
+ATOM    261  CA  ALA A  40      10.685  -3.687  14.015  1.00 40.02           C  
+ATOM    262  C   ALA A  40      12.080  -4.263  14.391  1.00 39.68           C  
+ATOM    263  O   ALA A  40      13.103  -3.778  13.914  1.00 38.58           O  
+ATOM    264  CB  ALA A  40      10.148  -4.289  12.730  1.00 39.47           C  
+ATOM         H   ALA A  40      10.831  -1.937  12.903  1.00 39.68           H  
+ATOM         HA  ALA A  40       9.948  -3.922  14.797  1.00 40.02           H  
+ATOM         HB1 ALA A  40      10.000  -5.371  12.865  1.00 39.47           H  
+ATOM         HB2 ALA A  40       9.188  -3.816  12.476  1.00 39.47           H  
+ATOM         HB3 ALA A  40      10.867  -4.117  11.915  1.00 39.47           H  
 """,
     {
-        Feature('HACC', [-8.085, -6.55, 35.93]),
-        Feature('HDON', [-7.758, -4.466, 39.67]),
-        Feature('LIPO', [-4.498, -3.721, 35.86]),
-        Feature('LIPO', [-6.233, -3.152, 35.75]),
-        Feature('LIPO', [-6.983, -2.367, 37.18]),
-        Feature('LIPO', [-7.298, -3.982, 34.47]),
+        Feature('HACC', [10.82, -1.872, 12.71]),
+        Feature('HDON', [13.77, -3.462, 13.6]),
+        Feature('LIPO', [11.39, -3.992, 11.32]),
+        Feature('LIPO', [8.49, -3.472, 12.29]),
+        Feature('LIPO', [9.865, -4.606, 12.05]),
+        Feature('LIPO', [9.892, -6.158, 12.96]),
     },
     id='ALA'
 )
 
 ARG = pytest.param(
-    """ATOM   2513  N   ARG A 330      -0.182  16.030  40.538  1.00 35.62           N  
-ATOM   2514  CA  ARG A 330       1.082  16.624  40.900  1.00 34.90           C  
-ATOM   2515  C   ARG A 330       1.609  17.501  39.794  1.00 34.79           C  
-ATOM   2516  O   ARG A 330       1.643  17.107  38.629  1.00 35.15           O  
-ATOM   2517  CB  ARG A 330       2.087  15.519  41.179  1.00 34.43           C  
-ATOM   2518  CG  ARG A 330       2.457  15.373  42.611  1.00 36.84           C  
-ATOM   2519  CD  ARG A 330       1.431  14.636  43.422  1.00 38.13           C  
-ATOM   2520  NE  ARG A 330       1.783  13.230  43.454  1.00 41.26           N  
-ATOM   2521  CZ  ARG A 330       1.226  12.328  44.248  1.00 42.35           C  
-ATOM   2522  NH1 ARG A 330       0.293  12.671  45.128  1.00 42.54           N  
-ATOM   2523  NH2 ARG A 330       1.616  11.072  44.163  1.00 40.54           N  
+    """ATOM    508  N   ARG A  70       3.911   9.033  32.523  1.00 21.83           N  
+ATOM    509  CA  ARG A  70       2.537   8.524  32.467  1.00 22.75           C  
+ATOM    510  C   ARG A  70       2.491   7.281  31.559  1.00 22.34           C  
+ATOM    511  O   ARG A  70       1.844   6.298  31.886  1.00 21.11           O  
+ATOM    512  CB  ARG A  70       1.572   9.619  31.947  1.00 22.96           C  
+ATOM    513  CG  ARG A  70       0.160   9.125  31.510  1.00 25.48           C  
+ATOM    514  CD  ARG A  70      -0.680  10.221  30.789  1.00 23.42           C  
+ATOM    515  NE  ARG A  70      -0.825  11.366  31.681  1.00 23.96           N  
+ATOM    516  CZ  ARG A  70      -0.399  12.599  31.414  1.00 24.08           C  
+ATOM    517  NH1 ARG A  70       0.143  12.900  30.234  1.00 20.76           N  
+ATOM    518  NH2 ARG A  70      -0.560  13.537  32.331  1.00 24.15           N  
+ATOM         HG2 ARG A  70       0.273   8.260  30.840  1.00 25.48           H  
+ATOM         H   ARG A  70       4.022   9.955  32.153  1.00 21.83           H  
+ATOM         HA  ARG A  70       2.212   8.242  33.480  1.00 22.75           H  
+ATOM         HB2 ARG A  70       1.447  10.376  32.735  1.00 22.96           H  
+ATOM         HB3 ARG A  70       2.045  10.122  31.091  1.00 22.96           H  
+ATOM         HG3 ARG A  70      -0.389   8.776  32.397  1.00 25.48           H  
+ATOM         HD3 ARG A  70      -1.669   9.824  30.515  1.00 23.42           H  
+ATOM         HD2 ARG A  70      -0.186  10.526  29.855  1.00 23.42           H  
+ATOM        HH11 ARG A  70       0.235  12.194  29.532  1.00 20.76           H  
+ATOM         HE  ARG A  70      -1.278  11.214  32.559  1.00 23.96           H  
+ATOM        HH21 ARG A  70      -0.994  13.314  33.204  1.00 24.15           H  
+ATOM        HH12 ARG A  70       0.457  13.832  30.051  1.00 20.76           H  
+ATOM        HH22 ARG A  70      -0.248  14.470  32.152  1.00 24.15           H  
 """,
     {
-        Feature('HACC', [-0.7258, 16.18, 41.84]),
-        Feature('HACC', [-0.8002, 16.4, 39.85]),
-        Feature('HACC', [-0.827, 11.63, 44.49]),
-        Feature('HACC', [0.7588, 10.73, 43.45]),
-        Feature('HACC', [1.067, 14.8, 44.09]),
-        Feature('HACC', [2.79, 13.27, 45.98]),
-        Feature('HDON', [2.258, 18.93, 39.81]),
-        Feature('LIPO', [-0.2348, 14.15, 41.04]),
-        Feature('LIPO', [2.177, 13.02, 39.71]),
-        Feature('LIPO', [3.304, 16.01, 42.59]),
-        Feature('LIPO', [3.468, 15.48, 39.74]),
-        Feature('POSC', [-0.2318, 16.56, 40.62]),
-        Feature('POSC', [0.2163, 11.48, 44.09]),
-        Feature('POSC', [1.498, 13.85, 43.54]),
-        Feature('POSC', [1.858, 12.64, 46.06]),
-    },
+        Feature('HACC', [-0.1856, 14.66, 32.12]), Feature('POSC', [0.265, 12.97, 29.97]),
+        Feature('POSC', [-0.921, 11.09, 31.74]), Feature('LIPO', [1.356, 10.93, 33.31]),
+        Feature('HACC', [4.044, 10.14, 32.08]), Feature('HDON', [1.42, 5.654, 32.1]),
+        Feature('LIPO', [-0.7883, 8.522, 33.04]), Feature('HACC', [0.2534, 12.05, 29.39]),
+        Feature('LIPO', [2.389, 10.49, 30.47]), Feature('LIPO', [0.3552, 7.631, 30.35]),
+        Feature('HACC', [-1.369, 11.18, 32.73]), Feature('HACC', [-1.081, 13.27, 33.38]),
+        Feature('POSC', [-0.5965, 13.75, 32.54]), Feature('HACC', [0.5198, 14.02, 30.01])}
+    ,
     id='ARG'
 )
 
 ASN = pytest.param(
-    """ATOM   2102  N   ASN A 278     -27.300  -9.279  12.569  1.00 43.44           N  
-ATOM   2103  CA  ASN A 278     -27.866 -10.088  13.617  1.00 42.99           C  
-ATOM   2104  C   ASN A 278     -28.685  -9.180  14.542  1.00 43.56           C  
-ATOM   2105  O   ASN A 278     -28.167  -8.162  15.003  1.00 43.72           O  
-ATOM   2106  CB  ASN A 278     -26.746 -10.798  14.379  1.00 42.39           C  
-ATOM   2107  CG  ASN A 278     -27.250 -11.667  15.501  1.00 41.27           C  
-ATOM   2108  OD1 ASN A 278     -28.381 -11.541  15.954  1.00 41.81           O  
-ATOM   2109  ND2 ASN A 278     -26.402 -12.558  15.970  1.00 42.33           N  
+    """ATOM   1208  N   ASN A 155      -6.377   2.142  16.593  1.00 28.03           N  
+ATOM   1209  CA  ASN A 155      -5.764   1.837  17.905  1.00 26.71           C  
+ATOM   1210  C   ASN A 155      -5.967   0.396  18.367  1.00 26.62           C  
+ATOM   1211  O   ASN A 155      -5.875   0.098  19.560  1.00 25.11           O  
+ATOM   1212  CB  ASN A 155      -6.217   2.826  19.004  1.00 26.34           C  
+ATOM   1213  CG  ASN A 155      -5.444   4.148  18.970  1.00 26.95           C  
+ATOM   1214  OD1 ASN A 155      -6.013   5.220  19.149  1.00 28.68           O  
+ATOM   1215  ND2 ASN A 155      -4.167   4.076  18.714  1.00 20.27           N  
+ATOM         H   ASN A 155      -7.361   2.317  16.617  1.00 28.03           H  
+ATOM         HA  ASN A 155      -4.683   1.963  17.742  1.00 26.71           H  
+ATOM         HB2 ASN A 155      -7.291   3.032  18.885  1.00 26.34           H  
+ATOM         HB3 ASN A 155      -6.087   2.356  19.990  1.00 26.34           H  
+ATOM        HD21 ASN A 155      -3.735   3.185  18.573  1.00 20.27           H  
+ATOM        HD22 ASN A 155      -3.620   4.911  18.659  1.00 20.27           H  
 """,
     {
-        Feature('HACC', [-25.24, -12.66, 15.84]),
-        Feature('HACC', [-26.23, -8.799, 12.74]),
-        Feature('HACC', [-26.95, -13.76, 16.34]),
-        Feature('HDON', [-28.98, -11.27, 16.45]),
-        Feature('HDON', [-29.67, -8.153, 14.76]),
+        Feature('HACC', [-3.649, 3.007, 18.54]), Feature('HDON', [-6.384, 5.919, 19.27]),
+        Feature('HACC', [-3.511, 5.078, 18.65]), Feature('HACC', [-7.558, 2.352, 16.62]),
+        Feature('HDON', [-5.815, -0.09534, 20.33])
     },
     id='ASN'
 )
 
 ASP = pytest.param(
-    """ATOM   2629  N   ASP A 343      13.634   5.771  37.980  1.00 32.80           N  
-ATOM   2630  CA  ASP A 343      13.219   4.716  38.898  1.00 34.48           C  
-ATOM   2631  C   ASP A 343      12.388   3.625  38.203  1.00 34.84           C  
-ATOM   2632  O   ASP A 343      12.693   2.426  38.327  1.00 36.08           O  
-ATOM   2633  CB  ASP A 343      12.395   5.291  40.036  1.00 34.50           C  
-ATOM   2634  CG  ASP A 343      13.158   6.301  40.844  1.00 37.06           C  
-ATOM   2635  OD1 ASP A 343      12.493   7.082  41.578  1.00 40.45           O  
-ATOM   2636  OD2 ASP A 343      14.409   6.315  40.726  1.00 36.59           O  
+    """ATOM   1309  N   ASP A 168      -2.779   2.584  22.274  1.00 25.68           N  
+ATOM   1310  CA  ASP A 168      -3.014   3.950  21.910  1.00 28.49           C  
+ATOM   1311  C   ASP A 168      -1.696   4.460  21.328  1.00 31.81           C  
+ATOM   1312  O   ASP A 168      -0.684   4.563  22.039  1.00 32.09           O  
+ATOM   1313  CB  ASP A 168      -3.390   4.777  23.160  1.00 28.61           C  
+ATOM   1314  CG  ASP A 168      -3.835   6.192  22.812  1.00  28.1           C  
+ATOM   1315  OD1 ASP A 168      -3.885   6.544  21.614  1.00 26.84           O  
+ATOM   1316  OD2 ASP A 168      -4.158   6.949  23.725  1.00 25.16           O  
+ATOM         H   ASP A 168      -1.863   2.400  22.631  1.00 25.68           H  
+ATOM         HA  ASP A 168      -3.841   4.039  21.190  1.00 28.49           H  
+ATOM         HB2 ASP A 168      -4.198   4.266  23.704  1.00 28.61           H  
+ATOM         HB3 ASP A 168      -2.525   4.825  23.838  1.00 28.61           H  
 """,
     {
-        Feature('HACC', [14.2, 5.575, 37.34]),
-        Feature('HDON', [12.0, 1.832, 38.22]),
-        Feature('HDON', [13.17, 7.841, 39.33]),
-        Feature('HDON', [13.29, 6.682, 42.79]),
-        Feature('NEGC', [12.25, 8.483, 39.01]),
-        Feature('NEGC', [12.41, 6.983, 43.48]),
-        Feature('NEGC', [13.35, 7.644, 41.31]),
-        Feature('NEGC', [14.19, 8.045, 38.8]),
-        Feature('NEGC', [14.35, 6.545, 43.27]),
+        Feature('NEGC', [-2.999, 7.27, 20.33]), Feature('NEGC', [-3.584, 8.143, 24.82]),
+        Feature('NEGC', [-4.244, 7.492, 22.49]), Feature('NEGC', [-5.467, 7.48, 24.71]),
+        Feature('HDON', [-4.368, 7.442, 24.32]), Feature('NEGC', [-4.883, 6.607, 20.21]),
+        Feature('HDON', [-0.03166, 4.629, 22.5]), Feature('HACC', [-1.68, 2.363, 22.7]),
+        Feature('HDON', [-3.917, 6.769, 20.85])
     },
     id='ASP'
 )
 
 CYS = pytest.param(
-    """ATOM   1578  N   CYS A 211     -19.537   2.552  17.945  1.00 29.42           N  
-ATOM   1579  CA  CYS A 211     -19.222   3.112  16.636  1.00 29.59           C  
-ATOM   1580  C   CYS A 211     -18.394   2.164  15.742  1.00 30.27           C  
-ATOM   1581  O   CYS A 211     -18.610   2.103  14.524  1.00 30.26           O  
-ATOM   1582  CB  CYS A 211     -18.470   4.439  16.799  1.00 29.76           C  
-ATOM   1583  SG  CYS A 211     -19.482   5.843  17.432  1.00 29.04           S  
+    """ATOM   1261  N   CYS A 162      -6.818 -13.192  14.088  1.00 34.25           N  
+ATOM   1262  CA  CYS A 162      -7.940 -12.276  14.447  1.00 33.59           C  
+ATOM   1263  C   CYS A 162      -8.006 -12.075  16.019  1.00 34.17           C  
+ATOM   1264  O   CYS A 162      -9.031 -11.661  16.609  1.00 35.47           O  
+ATOM   1265  CB  CYS A 162      -9.284 -12.612  13.619  1.00 33.52           C  
+ATOM   1266  SG  CYS A 162      -9.609 -11.534  11.941  1.00 28.88           S  
+ATOM         H   CYS A 162      -6.117 -12.774  13.510  1.00 34.25           H  
+ATOM         HA  CYS A 162      -7.759 -11.249  14.096  1.00 33.59           H  
+ATOM         HB2 CYS A 162      -9.261 -13.677  13.344  1.00 33.52           H  
+ATOM         HB3 CYS A 162     -10.145 -12.472  14.290  1.00 33.52           H  
+ATOM         HG  CYS A 162     -10.721 -11.918  11.387  1.00 28.88           H  
 """,
     {
-        Feature('HACC', [-18.64, 2.087, 18.53]),
-        Feature('HDON', [-18.69, 2.055, 13.75]),
-        Feature('LIPO', [-21.55, 5.366, 17.76]),
+        Feature('HACC', [-5.977, -12.69, 13.39]), Feature('HDON', [-11.41, -12.15, 11.05]),
+        Feature('HDON', [-9.685, -11.4, 16.99]), Feature('HDON', [-9.738, -11.11, 11.28]),
+        Feature('HDON', [-9.244, -14.45, 13.14]), Feature('HDON', [-10.77, -12.37, 14.78])
     },
     id='CYS'
 )
 
 HIS = pytest.param(
-    """ATOM   2368  N   HIS A 312     -18.230 -15.709  25.729  1.00 41.27           N  
-ATOM   2369  CA  HIS A 312     -18.266 -15.219  27.094  1.00 41.07           C  
-ATOM   2370  C   HIS A 312     -17.913 -16.336  28.043  1.00 41.80           C  
-ATOM   2371  O   HIS A 312     -18.423 -17.441  27.919  1.00 41.92           O  
-ATOM   2372  CB  HIS A 312     -19.660 -14.664  27.389  1.00 40.71           C  
-ATOM   2373  CG  HIS A 312     -19.882 -14.217  28.808  1.00 41.18           C  
-ATOM   2374  ND1 HIS A 312     -19.023 -13.373  29.475  1.00 39.83           N  
-ATOM   2375  CD2 HIS A 312     -20.919 -14.438  29.654  1.00 40.93           C  
-ATOM   2376  CE1 HIS A 312     -19.500 -13.127  30.683  1.00 41.50           C  
-ATOM   2377  NE2 HIS A 312     -20.648 -13.765  30.816  1.00 43.14           N  
+    """ATOM   1149  N   HIS A 148      -9.738   5.129  28.109  1.00 26.72           N  
+ATOM   1150  CA  HIS A 148      -8.894   5.168  26.917  1.00  25.7           C  
+ATOM   1151  C   HIS A 148      -9.023   6.505  26.193  1.00 26.61           C  
+ATOM   1152  O   HIS A 148      -8.008   7.146  25.902  1.00 25.52           O  
+ATOM   1153  CB  HIS A 148      -9.195   3.992  25.976  1.00 24.92           C  
+ATOM   1154  CG  HIS A 148      -8.247   3.899  24.820  1.00 24.48           C  
+ATOM   1155  ND1 HIS A 148      -7.335   2.865  24.677  1.00 24.63           N  
+ATOM   1156  CD2 HIS A 148      -8.055   4.719  23.759  1.00 21.42           C  
+ATOM   1157  CE1 HIS A 148      -6.622   3.062  23.578  1.00 21.47           C  
+ATOM   1158  NE2 HIS A 148      -7.055   4.164  22.995  1.00 23.25           N  
+ATOM         H   HIS A 148     -10.510   4.494  28.066  1.00 26.72           H  
+ATOM         HA  HIS A 148      -7.850   5.066  27.247  1.00  25.7           H  
+ATOM         HB2 HIS A 148      -9.156   3.054  26.549  1.00 24.92           H  
+ATOM         HB3 HIS A 148     -10.221   4.092  25.592  1.00 24.92           H  
+ATOM         HD1 HIS A 148      -7.232   2.093  25.304  1.00 24.63           H  
+ATOM         HD2 HIS A 148      -8.597   5.653  23.548  1.00 21.42           H  
+ATOM         HE1 HIS A 148      -5.808   2.417  23.214  1.00 21.47           H  
+ATOM         HE2 HIS A 148      -6.710   4.537  22.133  1.00 23.25           H  
 """,
     {
-        Feature('AROM', [-16.87, -18.61, 28.44]),
-        Feature('AROM', [-20.13, -13.15, 26.03]),
-        Feature('HACC', [-17.1, -15.86, 25.3]),
-        Feature('HACC', [-21.37, -13.75, 31.83]),
-        Feature('HDON', [-18.74, -18.17, 27.85]),
+        Feature('HDON', [-7.351, 7.561, 25.71]), Feature('AROM', [-9.775, 1.929, 22.26]),
+        Feature('HACC', [-10.66, 4.367, 28.06]), Feature('POSC', [-6.607, 4.649, 21.87]),
+        Feature('HACC', [-6.641, 4.612, 21.96]), Feature('POSC', [-7.201, 1.861, 25.49]),
+        Feature('POSC', [-8.745, 5.908, 23.49]), Feature('POSC', [-5.586, 2.241, 23.11]),
+        Feature('HACC', [-7.211, 1.939, 25.43]), Feature('AROM', [-5.15, 5.555, 25.68])
     },
     id='HIS'
 )
 
 GLU = pytest.param(
-    """ATOM   2637  N   GLU A 344      11.332   4.036  37.511  1.00 33.61           N  
-ATOM   2638  CA  GLU A 344      10.446   3.091  36.858  1.00 34.11           C  
-ATOM   2639  C   GLU A 344      11.193   2.204  35.849  1.00 34.20           C  
-ATOM   2640  O   GLU A 344      10.876   1.033  35.686  1.00 34.31           O  
-ATOM   2641  CB  GLU A 344       9.251   3.810  36.226  1.00 33.38           C  
-ATOM   2642  CG  GLU A 344       8.284   4.395  37.233  1.00 34.10           C  
-ATOM   2643  CD  GLU A 344       7.540   3.341  38.086  1.00 35.64           C  
-ATOM   2644  OE1 GLU A 344       7.358   2.184  37.644  1.00 34.95           O  
-ATOM   2645  OE2 GLU A 344       7.078   3.704  39.188  1.00 35.93           O  
-""",
-    {
-        Feature('HACC', [11.99, 4.744, 36.83]),
-        Feature('HDON', [10.66, 0.2883, 35.5]),
-        Feature('HDON', [6.792, 3.91, 39.91]),
-        Feature('HDON', [7.252, 1.434, 37.38]),
-        Feature('NEGC', [5.718, 4.351, 40.01]),
-        Feature('NEGC', [6.311, 1.153, 36.75]),
-        Feature('NEGC', [6.844, 2.398, 38.82]),
-        Feature('NEGC', [7.436, 3.792, 40.87]),
-        Feature('NEGC', [8.028, 0.5946, 37.61]),
+    """ATOM    519  N   GLU A  71       3.162   7.357  30.413  1.00 22.84           N  
+ATOM    520  CA  GLU A  71       3.135   6.262  29.428  1.00  24.0           C  
+ATOM    521  C   GLU A  71       3.877   5.061  30.020  1.00 24.17           C  
+ATOM    522  O   GLU A  71       3.371   3.954  29.987  1.00 25.01           O  
+ATOM    523  CB  GLU A  71       3.769   6.744  28.117  1.00  25.0           C  
+ATOM    524  CG  GLU A  71       4.231   5.683  27.147  1.00 25.27           C  
+ATOM    525  CD  GLU A  71       3.121   5.187  26.220  1.00 26.76           C  
+ATOM    526  OE1 GLU A  71       3.481   4.598  25.155  1.00 27.17           O  
+ATOM    527  OE2 GLU A  71       1.913   5.358  26.552  1.00 20.67           O  
+ATOM         H   GLU A  71       3.719   8.142  30.143  1.00 22.84           H  
+ATOM         HA  GLU A  71       2.103   5.955  29.202  1.00  24.0           H  
+ATOM         HB2 GLU A  71       3.040   7.385  27.600  1.00  25.0           H  
+ATOM         HB3 GLU A  71       4.633   7.377  28.368  1.00  25.0           H  
+ATOM         HG2 GLU A  71       5.054   6.086  26.539  1.00 25.27           H  
+ATOM         HG3 GLU A  71       4.635   4.830  27.712  1.00 25.27           H  
+""",{
+        Feature('NEGC', [3.868, 4.822, 23.49]), Feature('HDON', [3.708, 4.227, 24.48]),
+        Feature('HDON', [1.149, 5.466, 26.76]), Feature('HDON', [3.039, 3.227, 29.97]),
+        Feature('NEGC', [0.5654, 6.421, 26.43]), Feature('NEGC', [0.5855, 4.674, 27.41]),
+        Feature('HACC', [3.83, 8.299, 30.09]), Feature('NEGC', [2.105, 4.733, 25.37]),
+        Feature('NEGC', [3.888, 3.075, 24.47])
     },
     id='GLU'
 )
 
 GLN = pytest.param(
-    """ATOM     60  N   GLN A  11      23.638   2.737  16.073  1.00 61.44           N  
-ATOM     61  CA  GLN A  11      23.420   2.838  14.623  1.00 62.58           C  
-ATOM     62  C   GLN A  11      22.559   4.046  14.201  1.00 63.43           C  
-ATOM     63  O   GLN A  11      21.818   4.615  15.004  1.00 63.68           O  
-ATOM     64  CB  GLN A  11      22.868   1.532  14.031  1.00 62.37           C  
-ATOM     65  CG  GLN A  11      21.560   1.065  14.625  1.00 62.67           C  
-ATOM     66  CD  GLN A  11      20.972  -0.108  13.865  1.00 62.48           C  
-ATOM     67  OE1 GLN A  11      20.666  -0.003  12.676  1.00 62.75           O  
-ATOM     68  NE2 GLN A  11      20.810  -1.233  14.549  1.00 61.50           N  
+    """ATOM   2472  N   GLN A 325      -2.743   6.444  40.145  1.00 36.49           N  
+ATOM   2473  CA  GLN A 325      -2.507   7.591  39.294  1.00 37.39           C  
+ATOM   2474  C   GLN A 325      -2.654   8.950  40.032  1.00  36.9           C  
+ATOM   2475  O   GLN A 325      -3.113   9.953  39.479  1.00 36.46           O  
+ATOM   2476  CB  GLN A 325      -3.306   7.473  37.989  1.00 38.22           C  
+ATOM   2477  CG  GLN A 325      -4.742   7.090  38.124  1.00  41.3           C  
+ATOM   2478  CD  GLN A 325      -5.311   6.550  36.810  1.00 42.92           C  
+ATOM   2479  OE1 GLN A 325      -5.072   7.112  35.723  1.00  43.0           O  
+ATOM   2480  NE2 GLN A 325      -6.073   5.464  36.906  1.00  41.0           N  
+ATOM         H   GLN A 325      -3.659   6.366  40.539  1.00 36.49           H  
+ATOM         HA  GLN A 325      -1.446   7.583  39.004  1.00 37.39           H  
+ATOM         HB2 GLN A 325      -3.254   8.438  37.464  1.00 38.22           H  
+ATOM         HB3 GLN A 325      -2.810   6.731  37.347  1.00 38.22           H  
+ATOM         HG2 GLN A 325      -4.846   6.327  38.910  1.00  41.3           H  
+ATOM         HG3 GLN A 325      -5.327   7.965  38.445  1.00  41.3           H  
+ATOM        HE21 GLN A 325      -6.238   5.046  37.799  1.00  41.0           H  
+ATOM        HE22 GLN A 325      -6.481   5.065  36.085  1.00  41.0           H  
 """,
     {
-        Feature('HACC', [20.64, -1.309, 15.8]),
-        Feature('HACC', [20.78, -2.376, 14.0]),
-        Feature('HACC', [23.06, 3.421, 16.78]),
-        Feature('HDON', [20.48, 0.06548, 11.9]),
-        Feature('HDON', [21.31, 5.013, 15.47]),
+        Feature('HDON', [-4.919, 7.473, 35.03]), Feature('HACC', [-6.563, 4.985, 35.92]),
+        Feature('HACC', [-6.271, 4.962, 37.98]), Feature('HDON', [-3.411, 10.6, 39.12]),
+        Feature('HACC', [-3.842, 6.35, 40.62])
     },
     id='GLN'
 )
@@ -480,7 +493,6 @@ ATOM   2586  CH2 TRP A 337       3.968  13.973  37.767  1.00 23.56           C
     id='TRP'
 )
 
-
 TYR = pytest.param(
     """ATOM     37  N   TYR A   9      24.803  -1.481  21.129  1.00 55.74           N  
 ATOM     38  CA  TYR A   9      25.410  -1.127  19.863  1.00 56.50           C  
@@ -562,6 +574,14 @@ ATOM    231  CG2 VAL A  30       7.324  -1.515  11.024  1.00 53.61           C
 )
 
 
+def feat2point(f: Feature):
+    return f.kind, f.position[0], f.position[1], f.position[2]
+
+
+def feat2points(features):
+    return [feat2point(f) for f in features]
+
+
 @pytest.mark.parametrize("block,expected", [
     ALA,
     ARG,
@@ -571,23 +591,44 @@ ATOM    231  CG2 VAL A  30       7.324  -1.515  11.024  1.00 53.61           C
     HIS,
     GLU,
     GLN,
-    GLY,
-    ILE,
-    LEU,
-    LYS,
-    MET,
-    PHE,
-    PRO,
-    SER,
-    THR,
-    TRP,
-    TYR,
-    TYR_TRUNCATED,
-    VAL,
+    # GLY,
+    # ILE,
+    # LEU,
+    # LYS,
+    # MET,
+    # PHE,
+    # PRO,
+    # SER,
+    # THR,
+    # TRP,
+    # TYR,
+    # TYR_TRUNCATED,
+    # VAL,
 ])
-def test_from_site(block, expected):
-    site = prep_site(block)
+def test_from_site(block, expected, ligand_3heg_bax: Ligand):
+    site = prep_site(block, ligand_3heg_bax.molecule)
 
     features = from_site(site)
+    # print(site.ligand().model().to_file_string('pdb'))
+    # print(features)
+    # dump4molviewer(features, site)
 
     assert_features(expected, features)
+
+
+def dump4molviewer(features, site):
+    label = site.residue().name()
+    data = [{
+        'id': label,
+        'label': label,
+        'protein': {
+            'data': site.ligand().model().to_file_string('pdb'),
+            'format': 'pdb',
+        },
+        'pharmacophore': {
+            'data': as_phar(label, feat2points(features)),
+            'format': 'phar',
+        },
+    }]
+    with open('ALA.json', 'w') as f:
+        json.dump(data, f)

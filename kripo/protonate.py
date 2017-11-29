@@ -68,7 +68,7 @@ def protonate(pdb: Pdb) -> Pdb:
         A pdb with hydrogens added
     """
     model = pdb.model()
-    max_serial_number = max([a.atom_id() for a in model.atoms()])
+    max_serial_number = max([a.atom_id() for a in model.atoms() if a.atom_id()])
     h_atom_id = max_serial_number + 1
 
     # Protonate ligands
