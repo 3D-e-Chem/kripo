@@ -237,42 +237,50 @@ ATOM        HE22 GLN A 325      -6.481   5.065  36.085  1.00  41.0           H
 )
 
 GLY = pytest.param(
-    """ATOM   2093  N   GLY A 276     -30.316  -6.295   7.777  1.00 49.02           N  
-ATOM   2094  CA  GLY A 276     -30.341  -7.610   8.362  1.00 47.92           C  
-ATOM   2095  C   GLY A 276     -28.954  -7.961   8.885  1.00 47.11           C  
-ATOM   2096  O   GLY A 276     -28.325  -8.879   8.375  1.00 47.06           O  
+    """ATOM    843  N   GLY A 110       1.267  -5.826  13.366  1.00 42.11           N  
+ATOM    844  CA  GLY A 110       1.283  -5.806  11.912  1.00 40.92           C  
+ATOM    845  C   GLY A 110       0.106  -4.969  11.461  1.00  40.3           C  
+ATOM    846  O   GLY A 110       0.251  -3.784  11.175  1.00 41.29           O  
+ATOM         H   GLY A 110       0.814  -6.618  13.775  1.00 42.11           H  
+ATOM         HA2 GLY A 110       2.227  -5.380  11.540  1.00 40.92           H  
+ATOM         HA3 GLY A 110       1.210  -6.827  11.509  1.00 40.92           H  
 """,
     {
-        Feature('HACC', [-29.16, -5.804, 7.884]),
-        Feature('HDON', [-27.86, -9.447, 8.052]),
+        Feature('HDON', [0.3455, -3.012, 10.99]),
+        Feature('HACC', [0.7234, -6.776, 13.86])
     },
     id='GLY'
 )
 
 ILE = pytest.param(
-    """ATOM   2653  N   ILE A 346      14.387   1.339  36.234  1.00 39.47           N  
-ATOM   2654  CA  ILE A 346      15.274   0.501  37.045  1.00 40.11           C  
-ATOM   2655  C   ILE A 346      14.485  -0.631  37.720  1.00 40.36           C  
-ATOM   2656  O   ILE A 346      14.947  -1.772  37.758  1.00 39.90           O  
-ATOM   2657  CB  ILE A 346      16.118   1.379  38.045  1.00 40.58           C  
-ATOM   2658  CG1 ILE A 346      17.424   1.872  37.408  1.00 41.02           C  
-ATOM   2659  CG2 ILE A 346      16.478   0.625  39.358  1.00 40.14           C  
-ATOM   2660  CD1 ILE A 346      17.601   1.631  35.886  1.00 43.16           C  
+    """ATOM    633  N   ILE A  84      -2.143  -4.094  24.952  1.00  26.1           N  
+ATOM    634  CA  ILE A  84      -0.672  -3.934  24.739  1.00 25.39           C  
+ATOM    635  C   ILE A  84       0.057  -4.088  26.047  1.00 25.86           C  
+ATOM    636  O   ILE A  84      -0.436  -3.650  27.096  1.00 27.21           O  
+ATOM    637  CB  ILE A  84      -0.249  -2.576  24.039  1.00 25.11           C  
+ATOM    638  CG1 ILE A  84       1.255  -2.563  23.706  1.00 25.01           C  
+ATOM    639  CG2 ILE A  84      -0.696  -1.327  24.870  1.00 25.25           C  
+ATOM    640  CD1 ILE A  84       1.708  -1.502  22.736  1.00 26.18           C  
+ATOM         H   ILE A  84      -2.695  -3.410  24.474  1.00  26.1           H  
+ATOM         HA  ILE A  84      -0.385  -4.731  24.037  1.00 25.39           H  
+ATOM         HB  ILE A  84      -0.786  -2.512  23.081  1.00 25.11           H  
+ATOM        HG12 ILE A  84       1.817  -2.438  24.644  1.00 25.01           H  
+ATOM        HG13 ILE A  84       1.528  -3.547  23.296  1.00 25.01           H  
+ATOM        HG21 ILE A  84      -0.384  -0.409  24.350  1.00 25.25           H  
+ATOM        HG22 ILE A  84      -1.791  -1.331  24.980  1.00 25.25           H  
+ATOM        HG23 ILE A  84      -0.228  -1.361  25.865  1.00 25.25           H  
+ATOM        HD11 ILE A  84       2.793  -1.590  22.576  1.00 26.18           H  
+ATOM        HD12 ILE A  84       1.185  -1.633  21.777  1.00 26.18           H  
+ATOM        HD13 ILE A  84       1.478  -0.507  23.146  1.00 26.18           H  
 """,
     {
-        Feature('HACC', [13.93, 0.8756, 35.3]),
-        Feature('HDON', [14.28, -1.752, 38.93]),
-        Feature('LIPO', [14.89, 2.579, 38.75]),
-        Feature('LIPO', [15.52, 0.8621, 40.78]),
-        Feature('LIPO', [16.13, 2.268, 34.89]),
-        Feature('LIPO', [16.76, -1.361, 38.85]),
-        Feature('LIPO', [16.86, 0.07399, 39.91]),
-        Feature('LIPO', [17.22, 3.866, 37.73]),
-        Feature('LIPO', [17.73, 1.609, 35.16]),
-        Feature('LIPO', [18.23, -0.03753, 35.67]),
-        Feature('LIPO', [18.38, 1.055, 39.71]),
-        Feature('LIPO', [18.96, 1.423, 38.29]),
-        Feature('LIPO', [19.04, 2.887, 35.65]),
+        Feature('LIPO', [-2.587, -1.334, 25.06]), Feature('LIPO', [1.311, 0.2163, 23.44]),
+        Feature('LIPO', [-0.1571, 0.2585, 23.97]), Feature('HACC', [-2.805, -3.273, 24.38]),
+        Feature('LIPO', [1.726, -4.262, 23.0]), Feature('HDON', [-0.7543, -3.367, 27.77]),
+        Feature('LIPO', [2.226, -2.347, 25.33]), Feature('LIPO', [-1.177, -2.465, 22.38]),
+        Feature('LIPO', [3.582, -1.654, 22.46]), Feature('LIPO', [0.1123, -1.386, 26.59]),
+        Feature('LIPO', [-0.9244, -0.6887, 25.29]), Feature('LIPO', [0.8047, -1.728, 21.08]),
+        Feature('LIPO', [1.948, -0.9389, 22.22])
     },
     id='ILE'
 )
@@ -583,16 +591,16 @@ def feat2points(features):
 
 
 @pytest.mark.parametrize("block,expected", [
-    ALA,
-    ARG,
-    ASN,
-    ASP,
-    CYS,
-    HIS,
-    GLU,
-    GLN,
+    # ALA,
+    # ARG,
+    # ASN,
+    # ASP,
+    # CYS,
+    # HIS,
+    # GLU,
+    # GLN,
     # GLY,
-    # ILE,
+    ILE,
     # LEU,
     # LYS,
     # MET,
@@ -610,7 +618,7 @@ def test_from_site(block, expected, ligand_3heg_bax: Ligand):
 
     features = from_site(site)
     # print(site.ligand().model().to_file_string('pdb'))
-    # print(features)
+    print(features)
     # dump4molviewer(features, site)
 
     assert_features(expected, features)
