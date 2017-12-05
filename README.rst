@@ -37,3 +37,12 @@ To generate pharmacophore fingerprints from 2 pdb files use:
     kripo generate pdb.list frags.db phars.h5 fingerprints.db
 
 
+This will generate Kripo fragments/pharmacophores/fingerprints for the PDB files listed in the `pdb.list` file.
+
+Install
+-------
+
+.. code-block:: bash
+
+    conda env create -f environment.yml
+    python setup.py install
