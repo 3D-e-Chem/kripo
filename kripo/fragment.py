@@ -56,6 +56,10 @@ class Fragment:
         for atom in self.parent.atoms():
             if atom.name() in fragment_names:
                 atoms.add(atom)
+                # add hydrogens bonded to atom, because atom_names does not include anonymous hydrogens
+                for bonded_atom in atom.bonded_atoms():
+                    if bonded_atom.element() == 'H':
+                        atoms.add(bonded_atom)
         return atoms
 
     def site(self, radius=BINDING_SITE_RADIUS) -> Site:

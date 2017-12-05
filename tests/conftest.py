@@ -11,6 +11,12 @@ def prep_pdb(opath, npath):
 
 
 @pytest.fixture(scope="module")
+def orig_pdb_3heg():
+    filename = 'tests/fixtures/3HEG.pdb'
+    return pdb_from_file(filename, hydrogenate=False, clean=False)
+
+
+@pytest.fixture(scope="module")
 def pdb_3heg():
     filename = 'tests/fixtures/3HEG.prepped.pdb'
     return pdb_from_file(filename, hydrogenate=False, clean=False)

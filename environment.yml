@@ -45,7 +45,7 @@ dependencies:
 - pip:
   - alabaster==0.7.10
   - argh==0.26.2
-  - atomium==0.6.0
+  - atomium==0.7.0
   - babel==2.5.1
   - biopython==1.70
   - bleach==2.1.1
@@ -77,8 +77,6 @@ dependencies:
   - jupyter-client==5.1.0
   - jupyter-console==5.2.0
   - jupyter-core==4.3.0
-  - kripo (/home/stefanv/git/kripo)==0.1.0
-  - kripodb==2.3.1
   - markupsafe==1.0
   - matrices==0.1.0
   - mccabe==0.6.1
@@ -132,5 +130,4 @@ dependencies:
   - webencodings==0.5.1
   - werkzeug==0.12.2
   - widgetsnbextension==3.0.6
-prefix: /home/stefanv/miniconda3/envs/kripodb
 

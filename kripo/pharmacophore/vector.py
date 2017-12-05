@@ -17,6 +17,15 @@ def cross_product(a, b):
             a[0]*b[1]-a[1]*b[0]]
 
 
+def normalize(pos):
+    dist = sqrt(pos[0] * pos[0] + pos[1] * pos[1] + pos[2] * pos[2])
+    return (
+        pos[0] / dist,
+        pos[1] / dist,
+        pos[2] / dist,
+    )
+
+
 def center_of_triangle(atom1, atom2, atom3):
     pos1 = atom1.location()
     pos2 = atom2.location()
@@ -41,7 +50,7 @@ def center_of_triangle(atom1, atom2, atom3):
 
 
 def vector_rotate(v, angle, axis):
-    """Rotate the vector v by angle (in radians) about the axis.
+    """Rotate the vector v by angle (in degrees) about the axis.
     """
     # NORMALIZE
     d = 0
@@ -75,3 +84,19 @@ def vector_rotate(v, angle, axis):
             v2[i] += r[i][j] * v[j]
 
     return v2
+
+
+def above(pos, offset, factor):
+    return (
+        pos[0] + offset[0] * factor,
+        pos[1] + offset[1] * factor,
+        pos[2] + offset[2] * factor,
+    )
+
+
+def below(pos, offset, factor):
+    return (
+        pos[0] - offset[0] * factor,
+        pos[1] - offset[1] * factor,
+        pos[2] - offset[2] * factor,
+    )

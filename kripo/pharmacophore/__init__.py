@@ -95,7 +95,7 @@ def from_site(site: Site):
         'VAL': features_from_valine,
     }
     for residue in site.residues():
-        features |= mappers[residue.name()](residue, ligand)
+        features |= mappers[residue.name()](residue)
 
     features = annihilate_neighbouring_donors_and_acceptors(features)
 
