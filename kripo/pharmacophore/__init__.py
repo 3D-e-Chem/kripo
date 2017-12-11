@@ -70,7 +70,6 @@ def from_site(site: Site):
         List[Feature]: List of features
 
     """
-    ligand = site.ligand()
     features = set()
     mappers = {
         'ALA': features_from_alanine,
