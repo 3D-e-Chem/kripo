@@ -16,7 +16,7 @@ def test_pdb_block(ligand_3heg_bax: Ligand):
 def test_fragments(ligand_3heg_bax: Ligand):
     fragments = ligand_3heg_bax.fragments()
 
-    assert len(fragments) == 10
+    assert len(fragments) == 28
 
 
 def test_id(ligand_3heg_bax: Ligand):

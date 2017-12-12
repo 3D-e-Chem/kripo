@@ -36,11 +36,13 @@ def test_site__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
     site = fragment2_3heg_bax.site()
 
     site_ligand = site.ligand()
-    assert len(site_ligand.atoms()) == 29
+    assert len(site_ligand.atoms()) == 39
     assert site_ligand.name() == 'BAX'
     seq_nrs = seq_nrs_of_site(site)
     expected = {
+        30,
         35,
+        36,
         38,
         51,
         53,
@@ -55,7 +57,10 @@ def test_site__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
         86,
         104,
         106,
+        107,
+        108,
         109,
+        110,
         138,
         140,
         141,
@@ -65,6 +70,7 @@ def test_site__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
         149,
         151,
         155,
+        157,
         166,
         167,
         168,
@@ -149,7 +155,7 @@ def test_hash_code__when_fragment_is_ligand(fragment1_3heg_bax: Fragment):
 def test_hash_code__when_fragment_is_not_ligand(fragment2_3heg_bax: Fragment):
     hash_code = fragment2_3heg_bax.hash_code()
 
-    expected_hash_code = '930391721063a9b18730c8adfffef29a'
+    expected_hash_code = 'cf6e9dedd21a2f6597e898664ec51977'
     assert hash_code == expected_hash_code
 
 
@@ -169,7 +175,7 @@ def test_mol_block__when_fragment_is_not_ligand(fragment2_3heg_bax: Fragment):
     assert '3HEG_BAX_frag2' in mol_block
     assert 'V2000' in mol_block
     assert 'END' in mol_block
-    assert len(mol_block.split('\n')) == 51
+    assert len(mol_block.split('\n')) == 66
     # TODO compare whole block instead of pieces
 
 
