@@ -289,3 +289,28 @@ intersphinx_mapping = {'https://docs.python.org/': None,
 # RDkit doesn't have API docs as sphinx docs
 #                       'rdkit': ('http://rdkit.org/docs/', None),
                        }
+
+from sphinx.ext.autodoc import DataDocumenter, ModuleLevelDocumenter, SUPPRESS
+from sphinx.util.inspect import object_description
+
+def add_directive_header(self, sig):
+    # type: (unicode) -> None
+    ModuleLevelDocumenter.add_directive_header(self, sig)
+    sourcename = self.get_sourcename()
+    if not self.options.annotation:
+        try:
+            objrepr = object_description(self.object)
+
+            # PATCH: truncate the value if longer than 50 characters
+            if len(objrepr) > 50:
+                objrepr = objrepr[:50] + "..."
+        except ValueError:
+            pass
+        else:
+            self.add_line(u'   :annotation: = ' + objrepr, sourcename)
+    elif self.options.annotation is SUPPRESS:
+        pass
+    else:
+        self.add_line(u'   :annotation: %s' % self.options.annotation, sourcename)
+
+DataDocumenter.add_directive_header = add_directive_header

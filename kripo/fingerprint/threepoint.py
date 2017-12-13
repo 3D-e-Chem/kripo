@@ -8,9 +8,18 @@ from .utils import calc_bins, bin_distance
 
 """Constants and methods for 3 point pharmacophore fingerprints"""
 
+"""List of distance bin thresholds"""
 BINS = calc_bins(fp_width=0.8, fp_multiplier=1, max_bins=20, max_distance=float(23))
+
+"""Dictionary of that maps a 3 point pharmacophore to a fingerprint bit position
+
+The key is a string formatted as `XYZabc`. Where `XYZ` are the pharmacophore type short names in alphabetical order
+and where `abc` are the binned charified distances between the features in shortest distance first order.
+The shortest bin distance gets char `a` and each next bin is the next char in the alphabet.
+"""
 BIT_INFO = load_bitinfo(pkg_resources.resource_filename('kripo', 'data/PHARMACKEY_3PFP_25BINS_6FEATURES_new.txt.bz2'))
 
+"""Pharmacophore feature type name to fingerprint bit short name"""
 FEATURE2BIT = {
     'LIPO': 'H',
     'POSC': 'P',
@@ -28,7 +37,7 @@ def calculate_distance_matrix(ordered_features) -> List[List[float]]:
         ordered_features (List[Feature]):
 
     Returns:
-        List[List[float]]: Where row/column list indices are same a ordered_features indices and
+        Where row/column list indices are same a ordered_features indices and
             value is the distance between the row and column feature
     """
     n = len(ordered_features)
@@ -43,7 +52,7 @@ def calculate_distance_matrix(ordered_features) -> List[List[float]]:
     return matrix
 
 
-def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1):
+def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
     """Build a fingerprint from a pharmacophore
 
     Args:
@@ -52,7 +61,7 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1):
         fuzzy_factor (int): Number of bins below/above actual bin to include in fingerprint
 
     Returns:
-        intbitset: Fingerprint
+        Fingerprint
     """
     ordered_features = sorted(list(pharmacophore.features), key=lambda f: FEATURE2BIT[f.kind])
     nr_features = len(ordered_features)
