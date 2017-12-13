@@ -14,19 +14,18 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'Click>=6.0',
     'atomium',
-    'pybel', # conda install -c openbabel openbabel 
+    'pybel',  # conda install -c openbabel openbabel
     'kripodb',
-    # TODO: put package requirements here
+    'intbitset',
 ]
 
 setup_requirements = [
     'pytest-runner',
-    # TODO(3D-e-Chem): put setup requirements (distutils extensions, etc.) here
 ]
 
 test_requirements = [
     'pytest',
-    # TODO: put package test requirements here
+    'numpy',
 ]
 
 setup(
