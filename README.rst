@@ -18,12 +18,21 @@ Kripo
      :alt: Updates
 
 
-Key Representation of Interaction in POckets
+Key Representation of Interaction in POckets, see http://dx.doi.org/10.1186/1758-2946-6-S1-O26 for more information.
 
+Command line tool to generate Kripo fingerprints from Protein Data Bank files.
+The fingerprints can be used to can be used to find proteins which can bind a fragment of a ligand.
 
-* Free software: Apache Software License 2.0
-* Documentation: https://kripo.readthedocs.io.
+The kripo algorithm in a nutshell is:
 
+1. Foreach PDB
+2. Foreach ligand
+3. Fragment ligand into fragments
+4. Determine which residues of protein are in contact with fragment
+5. Translate contact residues to pharmacophoric features
+6. Convert pharmacophore to three point fingerprint
+
+It uses https://github.com/3D-e-Chem/kripodb to store output in database files.
 
 Usage
 -----
@@ -46,3 +55,10 @@ Install
 
     conda env create -f environment.yml
     python setup.py install
+
+Reference
+---------
+
+KRIPO – a structure-based pharmacophores approach explains polypharmacological effects;
+Tina Ritschel, Tom JJ Schirris, and Frans GM Russel; J Cheminform. 2014; 6(Suppl 1): O26;
+Published online 2014 Mar 11; http://dx.doi.org/10.1186/1758-2946-6-S1-O26
