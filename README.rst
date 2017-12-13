@@ -45,8 +45,15 @@ To generate pharmacophore fingerprints from 2 pdb files use:
     echo tests/fixtures/5IS0.pdb >> pdb.list
     kripo generate pdb.list frags.db phars.h5 fingerprints.db
 
-
 This will generate Kripo fragments/pharmacophores/fingerprints for the PDB files listed in the `pdb.list` file.
+
+To host the Kripo web service the following steps must be done:
+
+.. code-block:: bash
+
+    kripodb fragments pdb frags.db
+    kripodb fingerprints similarities --fragmentsdbfn frags.db fingerprints.db fingerprints.db similarities.h5
+    kripodb serve similarities.h5 frags.db phars.h5
 
 Install
 -------

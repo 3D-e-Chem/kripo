@@ -159,24 +159,16 @@ def test_hash_code__when_fragment_is_not_ligand(fragment2_3heg_bax: Fragment):
     assert hash_code == expected_hash_code
 
 
-def test_mol_block__when_fragment_is_ligand(fragment1_3heg_bax: Fragment):
-    mol_block = fragment1_3heg_bax.mol_block('3HEG_BAX_frag1')
+def test_set_name(fragment1_3heg_bax: Fragment):
+    name = '3HEG_BAX_frag1'
+    fragment1_3heg_bax.name = name
 
-    assert '3HEG_BAX_frag1' in mol_block
-    assert 'V2000' in mol_block
-    assert 'END' in mol_block
-    assert len(mol_block.split('\n')) == 72
-    # TODO compare whole block instead of pieces
+    assert fragment1_3heg_bax.name == name
+    assert fragment1_3heg_bax.molecule.GetProp('_Name') == name
 
 
-def test_mol_block__when_fragment_is_not_ligand(fragment2_3heg_bax: Fragment):
-    mol_block = fragment2_3heg_bax.mol_block('3HEG_BAX_frag2')
-
-    assert '3HEG_BAX_frag2' in mol_block
-    assert 'V2000' in mol_block
-    assert 'END' in mol_block
-    assert len(mol_block.split('\n')) == 66
-    # TODO compare whole block instead of pieces
+def test_get_name(fragment1_3heg_bax: Fragment):
+    assert fragment1_3heg_bax.name == ''
 
 
 def test_is_residue_nearby__nothing_in__false():

@@ -79,12 +79,13 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
 def generate_from_fragment(pdb, ligand, fragment, frag_nr, fragments_db, pharmacophore_points, fingerprints_dict):
     try:
         frag_id = build_frag_id(pdb, ligand, frag_nr)
+        fragment.name = frag_id
         click.echo('Generating pharmacophore fingerprint for {0}'.format(frag_id))
 
         pharmacophore = from_fragment(fragment)
         fingerprint = pharmacophore.fingerprint()
 
-        add_fragment2db(frag_id, pdb, ligand, frag_nr, fragment, fragments_db)
+        add_fragment2db(pdb, ligand, frag_nr, fragment, fragments_db)
         add_pharmacophore2db(pharmacophore_points, frag_id, pharmacophore)
         fingerprints_dict[frag_id] = fingerprint
     except NoFeatures:
@@ -94,14 +95,15 @@ def generate_from_fragment(pdb, ligand, fragment, frag_nr, fragments_db, pharmac
 
 
 def build_frag_id(thepdb, ligand, frag_nr):
-    pdb_code = thepdb.code()
+    pdb_code = thepdb.code().lower()
     het_code = ligand.name()
     return pdb_code + '_' + het_code + '_frag' + str(frag_nr)
 
 
-def add_fragment2db(frag_id, thepdb, ligand: Ligand, frag_nr, fragment: Fragment, fragments_db):
+def add_fragment2db(thepdb, ligand: Ligand, frag_nr, fragment: Fragment, fragments_db):
     # TODO move to kripodb, should not use sql here
-    pdb_code = thepdb.code()
+    frag_id = fragment.name
+    pdb_code = thepdb.code().lower()
     het_code = ligand.name()
     het_chain = ligand.chain()
     het_seq_nr = ligand.seq_nr()
@@ -110,8 +112,6 @@ def add_fragment2db(frag_id, thepdb, ligand: Ligand, frag_nr, fragment: Fragment
     hash_code = fragment.hash_code()
     atom_codes = ','.join(fragment.atom_names())
     nr_r_groups = fragment.nr_r_groups()
-    smiles = fragment.smiles()
-    mol_block = fragment.mol_block(frag_id)
 
     fragment_sql = '''INSERT INTO fragments (
                frag_id,
@@ -149,11 +149,9 @@ def add_fragment2db(frag_id, thepdb, ligand: Ligand, frag_nr, fragment: Fragment
         'nr_r_groups': nr_r_groups,
     }
     fragments_db.cursor.execute(fragment_sql, fragment_row)
-
-    molecule_sql = '''INSERT OR REPLACE INTO molecules (frag_id, smiles, mol) VALUES (?, ?, ?)'''
-    molecule_row = (frag_id, smiles, mol_block)
-    fragments_db.cursor.execute(molecule_sql, molecule_row)
     fragments_db.commit()
+
+    fragments_db.add_molecule(fragment.molecule)
 
 
 def add_pharmacophore2db(pharmacophore_points, frag_id, pharmacophore):

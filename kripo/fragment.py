@@ -114,15 +114,14 @@ class Fragment:
         smiles = self.smiles().encode('ascii')
         return md5(smiles).hexdigest()
 
-    def mol_block(self, name):
-        """Mol block of fragment
+    @property
+    def name(self) -> str:
+        """Name of fragment"""
+        try:
+            return self.molecule.GetProp('_Name')
+        except KeyError:
+            return ""
 
-        Args:
-            name (str): Name inserted into mol block
-
-        Returns:
-            str: Mol block
-        """
-        mol = Mol(self.molecule)
-        mol.SetProp('_Name', name)
-        return MolToMolBlock(mol)
+    @name.setter
+    def name(self, name: str):
+        self.molecule.SetProp('_Name', name)
