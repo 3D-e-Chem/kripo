@@ -69,3 +69,10 @@ Reference
 KRIPO – a structure-based pharmacophores approach explains polypharmacological effects;
 Tina Ritschel, Tom JJ Schirris, and Frans GM Russel; J Cheminform. 2014; 6(Suppl 1): O26;
 Published online 2014 Mar 11; http://dx.doi.org/10.1186/1758-2946-6-S1-O26
+
+For protonation of protein Reduce http://kinemage.biochem.duke.edu/software/reduce.php is used:
+Word, et. al. (1999) Asparagine and Glutamine: Using Hydrogen Atom
+Contacts in the Choice of Side-chain Amide Orientation, J. Mol. Biol. 285, 1733-1747.
+
+For protonation of ligand OpenBabel https://doi.org/10.1186/1758-2946-3-33 is used.
+
