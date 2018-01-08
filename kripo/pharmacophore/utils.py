@@ -5,7 +5,6 @@ from atomium.structures import Residue, Atom
 from atomium.files.pdbdict2pdb import pdb_dict_to_pdb
 from atomium.files.pdbstring2pdbdict import pdb_string_to_pdb_dict
 
-from ..protonate import protonate_protein, protonate_ligand
 from .vector import vector_rotate, normalize, cross_product
 
 

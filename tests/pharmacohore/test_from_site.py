@@ -174,11 +174,16 @@ ATOM         HE1 HIS A 148      -5.808   2.417  23.214  1.00 21.47           H
 ATOM         HE2 HIS A 148      -6.710   4.537  22.133  1.00 23.25           H  
 """,
     {
-        Feature('HDON', [-7.351, 7.561, 25.71]), Feature('AROM', [-9.775, 1.929, 22.26]),
-        Feature('HACC', [-10.66, 4.367, 28.06]), Feature('POSC', [-6.607, 4.649, 21.87]),
-        Feature('HACC', [-6.641, 4.612, 21.96]), Feature('POSC', [-7.201, 1.861, 25.49]),
-        Feature('POSC', [-8.745, 5.908, 23.49]), Feature('POSC', [-5.586, 2.241, 23.11]),
-        Feature('HACC', [-7.211, 1.939, 25.43]), Feature('AROM', [-5.15, 5.555, 25.68])
+        Feature('AROM', [-10.18, 1.609, 21.95]),
+        Feature('AROM', [-4.742, 5.875, 25.98]),
+        Feature('HACC', [-10.66, 4.367, 28.06]),
+        Feature('HACC', [-6.641, 4.612, 21.96]),
+        Feature('HACC', [-7.211, 1.939, 25.43]),
+        Feature('HDON', [-7.351, 7.561, 25.71]),
+        Feature('POSC', [-5.586, 2.241, 23.11]),
+        Feature('POSC', [-6.607, 4.649, 21.87]),
+        Feature('POSC', [-7.201, 1.861, 25.49]),
+        Feature('POSC', [-8.745, 5.908, 23.49]),
     },
     id='HIS'
 )
@@ -408,13 +413,17 @@ ATOM         HE2 PHE A 169      -1.652   1.539  15.548  1.00 40.63           H
 ATOM         HZ  PHE A 169       0.683   0.760  15.866  1.00 41.45           H  
 """,
     {
-        Feature('AROM', [0.9285, 3.77, 17.54]), Feature('AROM', [1.362, 2.487, 16.98]),
-        Feature('LIPO', [3.063, 1.939, 17.2]), Feature('HACC', [-2.528, 4.312, 19.28]),
-        Feature('HDON', [0.2841, 7.712, 21.45]), Feature('AROM', [-1.002, 2.102, 16.06]),
-        Feature('AROM', [-1.43, 3.388, 16.63]), Feature('AROM', [-0.968, 1.621, 19.81]),
-        Feature('LIPO', [-0.3174, 2.812, 17.59]), Feature('AROM', [0.7336, 4.737, 14.01]),
-        Feature('LIPO', [0.08299, 3.545, 16.23]), Feature('LIPO', [2.108, 4.796, 18.43]),
-        Feature('LIPO', [-3.131, 3.937, 16.41]), Feature('LIPO', [-2.172, 1.089, 15.14])
+        Feature('AROM', [-1.038, 1.104, 20.22]),
+        Feature('AROM', [0.964, 4.77, 13.4]),
+        Feature('HACC', [-2.528, 4.312, 19.28]),
+        Feature('HDON', [0.2841, 7.712, 21.45]),
+        Feature('LIPO', [-0.2372, 2.57, 17.49]),
+        Feature('LIPO', [-2.172, 1.089, 15.14]),
+        Feature('LIPO', [-3.131, 3.937, 16.41]),
+        Feature('LIPO', [0.1632, 3.303, 16.12]),
+        Feature('LIPO', [0.915, 0.05605, 15.56]),
+        Feature('LIPO', [2.108, 4.796, 18.43]),
+        Feature('LIPO', [3.063, 1.939, 17.2]),
     },
     id='PHE'
 )
@@ -482,11 +491,15 @@ ATOM        HG22 THR A 106       5.129  -3.435  20.380  1.00 37.97           H
 ATOM        HG23 THR A 106       3.891  -3.745  21.644  1.00 37.97           H  
 """,
     {
-        Feature('LIPO', [4.076, -3.188, 20.69]), Feature('HACC', [8.246, -3.243, 21.8]),
-        Feature('HDON', [5.299, -1.958, 24.15]), Feature('HDON', [4.204, -2.134, 23.63]),
-        Feature('LIPO', [3.367, -4.279, 21.93]), Feature('HDON', [7.947, -5.347, 20.48]),
-        Feature('LIPO', [5.506, -3.743, 19.75]), Feature('LIPO', [3.687, -1.433, 20.74]),
         Feature('HACC', [4.881, -0.8568, 23.21]),
+        Feature('HACC', [8.246, -3.243, 21.8]),
+        Feature('HDON', [4.204, -2.134, 23.63]),
+        Feature('HDON', [5.299, -1.958, 24.15]),
+        Feature('HDON', [7.947, -5.347, 20.48]),
+        Feature('LIPO', [3.367, -4.279, 21.93]),
+        Feature('LIPO', [3.687, -1.433, 20.74]),
+        Feature('LIPO', [4.076, -3.188, 20.69]),
+        Feature('LIPO', [5.506, -3.743, 19.75]),
     },
     id='THR'
 )
@@ -518,15 +531,19 @@ ATOM         HZ3 TRP A  18      14.033   1.414  18.931  1.00 46.66           H
 ATOM         HH2 TRP A  18      12.451   2.823  17.638  1.00 46.51           H  
 """,
     {
-        Feature('AROM', [14.49, 5.139, 20.1]), Feature('AROM', [13.43, 2.947, 17.51]),
-        Feature('LIPO', [14.43, 2.287, 17.01]), Feature('HACC', [20.87, 4.74, 16.29]),
-        Feature('LIPO', [14.45, 3.373, 18.19]), Feature('AROM', [15.88, 2.241, 18.13]),
-        Feature('AROM', [13.91, 3.96, 16.56]), Feature('AROM', [16.51, 1.784, 13.87]),
-        Feature('AROM', [14.39, 0.5219, 15.1]), Feature('LIPO', [11.66, 2.724, 17.74]),
-        Feature('LIPO', [17.01, 1.22, 19.08]), Feature('AROM', [14.39, 2.093, 18.29]),
-        Feature('HDON', [22.3, 2.472, 17.98]), Feature('LIPO', [13.75, 0.871, 19.44]),
-        Feature('AROM', [16.61, 6.401, 18.87]), Feature('LIPO', [12.76, 4.989, 15.63]),
-        Feature('HACC', [15.62, 5.706, 14.91])
+        Feature('AROM', [14.38, 0.1145, 14.66]),
+        Feature('AROM', [14.49, 5.546, 20.54]),
+        Feature('AROM', [16.5, 1.377, 13.43]),
+        Feature('AROM', [16.62, 6.809, 19.31]),
+        Feature('HACC', [15.62, 5.706, 14.91]),
+        Feature('HACC', [20.87, 4.74, 16.29]),
+        Feature('HDON', [22.3, 2.472, 17.98]),
+        Feature('LIPO', [11.66, 2.724, 17.74]),
+        Feature('LIPO', [12.76, 4.989, 15.63]),
+        Feature('LIPO', [13.75, 0.871, 19.44]),
+        Feature('LIPO', [14.43, 2.287, 17.01]),
+        Feature('LIPO', [14.45, 3.373, 18.19]),
+        Feature('LIPO', [17.01, 1.22, 19.08]),
     },
     id='TRP'
 )
@@ -555,15 +572,13 @@ ATOM         HE2 TYR A 140      -4.181  -3.835  31.845  1.00 21.42           H
 ATOM         HH  TYR A 140      -3.345  -5.374  34.906  1.00 27.93           H  
 """,
     {
-        Feature('AROM', [-4.826, -7.781, 30.66]), Feature('HACC', [-10.78, -5.266, 30.63]),
-        Feature('LIPO', [-4.979, -7.369, 35.36]), Feature('LIPO', [-6.479, -6.005, 32.0]),
-        Feature('AROM', [-6.23, -4.533, 31.71]), Feature('HDON', [-2.885, -4.55, 33.93]),
-        Feature('HDON', [-2.732, -5.77, 33.76]), Feature('AROM', [-4.852, -4.454, 32.25]),
-        Feature('LIPO', [-6.964, -4.883, 33.03]), Feature('HDON', [-8.514, -2.652, 34.53]),
-        Feature('LIPO', [-3.644, -3.34, 31.52]), Feature('LIPO', [-6.689, -3.489, 30.31]),
-        Feature('AROM', [-6.889, -3.016, 35.05]), Feature('AROM', [-5.463, -6.284, 34.01]),
-        Feature('LIPO', [-8.071, -7.435, 34.2]), Feature('AROM', [-6.86, -6.33, 33.46]),
+        Feature('AROM', [-4.644, -8.202, 30.28]),
+        Feature('AROM', [-7.071, -2.595, 35.44]),
+        Feature('HACC', [-10.78, -5.266, 30.63]),
         Feature('HACC', [-3.353, -5.402, 35.1]),
+        Feature('HDON', [-2.732, -5.77, 33.76]),
+        Feature('HDON', [-2.885, -4.55, 33.93]),
+        Feature('HDON', [-8.514, -2.652, 34.53]),
     },
     id='TYR'
 )
@@ -650,13 +665,13 @@ def test_from_site(block, expected, ligand_3heg_bax: Ligand):
     features = from_site(site)
     # print(site.ligand().model().to_file_string('pdb'))
     # print(features)
-    # dump4molviewer(features, site)
+    dump4molviewer(features, site)
 
     assert_features(expected, features)
 
 
 def dump4molviewer(features, site):
-    label = site.residue().name()
+    label = site.residue().name() + str(len(list(site.residue().atoms())))
     data = [{
         'id': label,
         'label': label,
@@ -669,5 +684,7 @@ def dump4molviewer(features, site):
             'format': 'phar',
         },
     }]
-    with open('ALA.json', 'w') as f:
+    with open('bla.' + label + '.json', 'w') as f:
         json.dump(data, f)
+    # Concatenate with
+    #   jq -s add  bla.*.json > bla.json

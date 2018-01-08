@@ -165,6 +165,7 @@ def test_set_name(fragment1_3heg_bax: Fragment):
 
     assert fragment1_3heg_bax.name == name
     assert fragment1_3heg_bax.molecule.GetProp('_Name') == name
+    fragment1_3heg_bax.name = ''
 
 
 def test_get_name(fragment1_3heg_bax: Fragment):
