@@ -7,6 +7,7 @@ from atomium.structures.chains import Site
 import pytest
 
 from kripo.ligand import Ligand
+from kripo.pdb import pdb_from_file, ligands
 from kripo.pharmacophore import Feature, from_site
 from kripodb.pharmacophores import as_phar
 
@@ -636,7 +637,7 @@ def feat2points(features):
     return [feat2point(f) for f in features]
 
 
-@pytest.mark.parametrize("block,expected", [
+residues = [
     ALA,
     ARG,
     ASN,
@@ -658,7 +659,10 @@ def feat2points(features):
     TYR,
     TYR_TRUNCATED,
     VAL,
-])
+]
+
+
+@pytest.mark.parametrize("block,expected", residues)
 def test_from_site(block, expected, ligand_3heg_bax: Ligand):
     site = prep_site(block, ligand_3heg_bax.molecule)
 
@@ -670,7 +674,47 @@ def test_from_site(block, expected, ligand_3heg_bax: Ligand):
     assert_features(expected, features)
 
 
+def dump_artificial_pdb_with_all_residues(all_res_site_pdb):
+    """
+
+    ```python
+    from tests.pharmacohore.test_from_site import dump_artificial_pdb_with_all_residues
+    dump_artificial_pdb_with_all_residues('all_res_site_pdb')
+    ```
+
+    """
+    ligand = ligands(pdb_from_file('tests/fixtures/3HEG.prepped.pdb'))[0]
+    block = ""
+    for residue in residues:
+        block += residue.values[0]
+    site = prep_site(block, ligand.molecule)
+    block_with_ligand = site.ligand().model().to_file_string('pdb')
+    with open(all_res_site_pdb, 'w') as f:
+        f.write(block_with_ligand)
+
+
+def dump_pharmacophore_with_all_residues(all_res_site_phar):
+    """"
+
+    ```python
+    from tests.pharmacohore.test_from_site import dump_pharmacophore_with_all_residues
+    dump_pharmacophore_with_all_residues('all_res_site.phar')
+    ```
+
+    """
+    features = set()
+    for residue in residues:
+        features |= residue.values[1]
+    phar = as_phar(all_res_site_phar, feat2points(features))
+    with open(all_res_site_phar, 'w') as f:
+        f.write(phar)
+
+
 def dump4molviewer(features, site):
+    """Dumps each pharmacophore/residue pair to a file.
+
+     When concatenated with `jq -s add  bla.*.json > bla.json` can be viewed in the KNIME molviewer
+    """
     label = site.residue().name() + str(len(list(site.residue().atoms())))
     data = [{
         'id': label,
@@ -686,5 +730,3 @@ def dump4molviewer(features, site):
     }]
     with open('bla.' + label + '.json', 'w') as f:
         json.dump(data, f)
-    # Concatenate with
-    #   jq -s add  bla.*.json > bla.json
