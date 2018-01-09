@@ -134,22 +134,29 @@ ATOM         HB3 ASP A 168      -2.525   4.825  23.838  1.00 28.61           H
 )
 
 CYS = pytest.param(
-    """ATOM   1261  N   CYS A 162      -6.818 -13.192  14.088  1.00 34.25           N  
-ATOM   1262  CA  CYS A 162      -7.940 -12.276  14.447  1.00 33.59           C  
-ATOM   1263  C   CYS A 162      -8.006 -12.075  16.019  1.00 34.17           C  
-ATOM   1264  O   CYS A 162      -9.031 -11.661  16.609  1.00 35.47           O  
-ATOM   1265  CB  CYS A 162      -9.284 -12.612  13.619  1.00 33.52           C  
-ATOM   1266  SG  CYS A 162      -9.609 -11.534  11.941  1.00 28.88           S  
-ATOM         H   CYS A 162      -6.117 -12.774  13.510  1.00 34.25           H  
-ATOM         HA  CYS A 162      -7.759 -11.249  14.096  1.00 33.59           H  
-ATOM         HB2 CYS A 162      -9.261 -13.677  13.344  1.00 33.52           H  
-ATOM         HB3 CYS A 162     -10.145 -12.472  14.290  1.00 33.52           H  
-ATOM         HG  CYS A 162     -10.721 -11.918  11.387  1.00 28.88           H  
+    # The closest CYS to the ligand is 162, but it is more than 10 Angstroms away
+    # Making difficult to view in the KNIME molviewer
+    # The CYS 162 was translated 5, 5, 5 to bring it closer to the ligand
+    # atomium_model.translate(5, 5, 5)
+    """ATOM   1261  N   CYS A 162      -1.818  -8.192  19.088  1.00 34.25           N  
+ATOM   1262  CA  CYS A 162      -2.940  -7.276  19.447  1.00 33.59           C  
+ATOM   1263  C   CYS A 162      -3.006  -7.075  21.019  1.00 34.17           C  
+ATOM   1264  O   CYS A 162      -4.031  -6.661  21.609  1.00 35.47           O  
+ATOM   1265  CB  CYS A 162      -4.284  -7.612  18.619  1.00 33.52           C  
+ATOM   1266  SG  CYS A 162      -4.609  -6.534  16.941  1.00 28.88           S  
+ATOM         H   CYS A 162      -1.117  -7.774  18.510  1.00 34.25           H  
+ATOM         HA  CYS A 162      -2.759  -6.249  19.096  1.00 33.59           H  
+ATOM         HB2 CYS A 162      -4.261  -8.677  18.344  1.00 33.52           H  
+ATOM         HB3 CYS A 162      -5.145  -7.472  19.290  1.00 33.52           H  
+ATOM         HG  CYS A 162      -5.721  -6.918  16.387  1.00 28.88           H  
 """, {
-        Feature('LIPO', [-10.77, -12.37, 14.78]), Feature('LIPO', [-9.244, -14.45, 13.14]),
-        Feature('HDON', [-9.685, -11.4, 16.99]), Feature('LIPO', [-9.674, -9.416, 11.78]),
-        Feature('LIPO', [-8.282, -11.31, 10.3]), Feature('LIPO', [-11.41, -12.15, 11.05]),
-        Feature('HACC', [-5.977, -12.69, 13.39])
+        Feature('HACC', [-0.9768, -7.69, 18.39]),
+        Feature('HDON', [-4.685, -6.397, 21.99]),
+        Feature('LIPO', [-3.282, -6.307, 15.3]),
+        Feature('LIPO', [-4.244, -9.451, 18.14]),
+        Feature('LIPO', [-4.674, -4.416, 16.78]),
+        Feature('LIPO', [-5.771, -7.37, 19.78]),
+        Feature('LIPO', [-6.405, -7.154, 16.05]),
     },
     id='CYS'
 )
