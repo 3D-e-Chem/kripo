@@ -370,7 +370,12 @@ def features_from_lysine_hydropobe(residue):
 
 
 def features_from_methionine_sidechain(residue):
-    return features_from_sidechain_sulfur(residue)
+    features = features_from_sidechain_sulfur(residue)
+    if H_dist >= 0:
+        sg = residue.atom(name='SD')
+        ce = residue.atom(name='CE')
+        features.add(Feature('LIPO', feature_pos_of_bond(ce, sg, H_dist)))
+    return features
 
 
 def features_from_phenylalanine_sidechain(residue):
