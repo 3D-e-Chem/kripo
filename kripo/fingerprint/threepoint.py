@@ -24,8 +24,8 @@ FEATURE2BIT = {
     'LIPO': 'H',
     'POSC': 'P',
     'NEGC': 'N',
-    'HDON': 'A',
-    'HACC': 'O',
+    'HDON': 'O',
+    'HACC': 'A',
     'AROM': 'R'
 }
 

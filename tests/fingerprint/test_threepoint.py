@@ -44,14 +44,14 @@ single_point_phars = [
         id='NEGC'
     ),
     pytest.param(
-        Pharmacophore([Feature('HDON', (0.0, 0.0, 0.0))]),
+        Pharmacophore([Feature('HACC', (0.0, 0.0, 0.0))]),
         intbitset([1]),
-        id='HDON'
+        id='HACC'
     ),
     pytest.param(
-        Pharmacophore([Feature('HACC', (0.0, 0.0, 0.0))]),
+        Pharmacophore([Feature('HDON', (0.0, 0.0, 0.0))]),
         intbitset([4]),
-        id='HACC'
+        id='HDON'
     ),
     pytest.param(
         Pharmacophore([Feature('AROM', (0.0, 0.0, 0.0))]),
@@ -106,7 +106,7 @@ double_point_phars = [
 triple_point_phars = [
     pytest.param(
         Pharmacophore([
-            Feature('HACC', (0.0, 0.0, 0.0)),
+            Feature('HDON', (0.0, 0.0, 0.0)),
             Feature('LIPO', (1.0, 0.0, 0.0)),
             Feature('AROM', (5.0, 0.0, 0.0))
         ]),
@@ -115,15 +115,15 @@ triple_point_phars = [
             507126, 507127, 507146, 531673, 531674, 531675, 531693, 531694, 531712, 531926, 531927, 531928, 531946,
             531947, 531965, 532157, 532158, 532159, 532177, 532178, 532196
         ]),
-        id='HACC-LIPO-AROM-4-5-1'
+        id='HDON-LIPO-AROM-4-5-1'
     ),
 ]
 
 real_phars = [
     pytest.param(
         Pharmacophore([
-            Feature('HACC', (4.3842, -30.2418, -18.7159)),
-            Feature('HDON', (5.1451, -26.3654, -19.8650)),
+            Feature('HDON', (4.3842, -30.2418, -18.7159)),
+            Feature('HACC', (5.1451, -26.3654, -19.8650)),
             Feature('LIPO', (8.2964, -25.1876, -19.6532)),
         ]),
         intbitset([
@@ -167,9 +167,9 @@ real_phars = [
         Pharmacophore([
             Feature('LIPO', (12.3971, 28.8415, 21.9387)),
             Feature('LIPO', (13.8665, 28.9799, 19.4300)),
-            Feature('HACC', (12.9295, 31.8887, 21.6508)),
-            Feature('HDON', (16.2247, 32.8927, 21.5269)),
-            Feature('HDON', (15.4769, 31.9618, 21.8863)),
+            Feature('HDON', (12.9295, 31.8887, 21.6508)),
+            Feature('HACC', (16.2247, 32.8927, 21.5269)),
+            Feature('HACC', (15.4769, 31.9618, 21.8863)),
         ]),
         intbitset([
             1, 2, 4, 7, 8, 9, 36, 37, 38, 39, 84, 85, 86, 87, 159, 160, 161, 209, 210, 211, 212, 21352, 21353, 21354,
@@ -190,8 +190,8 @@ real_phars = [
     ),
     pytest.param(
         Pharmacophore([
-            Feature('HDON', (108.4161, 90.7467, 103.2925)),
-            Feature('HDON', (108.8071, 93.3418, 109.5104)),
+            Feature('HACC', (108.4161, 90.7467, 103.2925)),
+            Feature('HACC', (108.8071, 93.3418, 109.5104)),
             Feature('NEGC', (109.8313, 92.7846, 109.4843)),
             Feature('NEGC', (107.9061, 92.8607, 108.9476)),
             Feature('LIPO', (110.5203, 99.7944, 106.2900)),
@@ -206,15 +206,15 @@ real_phars = [
             Feature('LIPO', (104.4201, 94.1307, 93.9420)),
             Feature('LIPO', (103.5509, 96.8359, 92.5697)),
             Feature('LIPO', (111.5684, 97.8832, 103.1618)),
-            Feature('HACC', (108.4197, 89.1578, 108.4600)),
-            Feature('HDON', (109.3716, 90.2873, 108.2266)),
-            Feature('HDON', (108.6960, 89.9546, 107.2249)),
-            Feature('HDON', (111.9800, 92.9399, 103.3118)),
-            Feature('HACC', (109.0628, 93.7221, 100.2095)),
-            Feature('HDON', (109.6502, 93.1280, 98.9741)),
-            Feature('HDON', (109.7933, 92.4380, 100.0053)),
-            Feature('HDON', (105.5256, 95.6382, 104.2111)),
-            Feature('HDON', (107.1440, 96.4587, 105.5403)),
+            Feature('HDON', (108.4197, 89.1578, 108.4600)),
+            Feature('HACC', (109.3716, 90.2873, 108.2266)),
+            Feature('HACC', (108.6960, 89.9546, 107.2249)),
+            Feature('HACC', (111.9800, 92.9399, 103.3118)),
+            Feature('HDON', (109.0628, 93.7221, 100.2095)),
+            Feature('HACC', (109.6502, 93.1280, 98.9741)),
+            Feature('HACC', (109.7933, 92.4380, 100.0053)),
+            Feature('HACC', (105.5256, 95.6382, 104.2111)),
+            Feature('HACC', (107.1440, 96.4587, 105.5403)),
         ]),
         intbitset([
             1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42,

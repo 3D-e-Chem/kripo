@@ -25,7 +25,7 @@ def features_from_backbone_amine(residue: Residue):
     try:
         hydrogen = bonded_hydrogens(nitrogen)[0]
         feature_pos = feature_pos_of_bond(hydrogen, nitrogen, O_dist)
-        return {Feature('HACC', feature_pos)}
+        return {Feature('HDON', feature_pos)}
     except IndexError:
         logging.warning('Skipping amine backbone feature as residue {0} has no N-H bond'.format(residue))
         return set()
@@ -38,7 +38,7 @@ def features_from_backbone_carbonyl(residue):
     carbon = residue.atom(name='C')
 
     feature_pos = feature_pos_of_bond(oxygen, carbon, A_dist)
-    feature = Feature('HDON', feature_pos)
+    feature = Feature('HACC', feature_pos)
 
     return {feature}
 
@@ -85,7 +85,7 @@ def features_from_sidechain_donors(residue):
     for nitrogen in sidechain_nitrogens(residue):
         for hydrogen in bonded_hydrogens(nitrogen):
             feature_pos = feature_pos_of_bond(hydrogen, nitrogen, O_dist)
-            feature = Feature('HACC', feature_pos)
+            feature = Feature('HDON', feature_pos)
             features.add(feature)
     return features
 
@@ -119,13 +119,13 @@ def features_from_asparagine_sidechain(residue):
     features = set()
     if A_dist >= 0:
         feature_pos = feature_pos_of_bond(od1, cg, A_dist)
-        feature = Feature('HDON', feature_pos)
+        feature = Feature('HACC', feature_pos)
         features.add(feature)
 
     if O_dist >= 0:
         for hyd in bonded_hydrogens(nd2):
             feature_pos = feature_pos_of_bond(hyd, nd2, O_dist)
-            feature = Feature('HACC', feature_pos)
+            feature = Feature('HDON', feature_pos)
             features.add(feature)
 
     return features
@@ -142,8 +142,8 @@ def features_from_asparticacids_sidechain(residue):
     features = set()
     if A_dist >= 0:
         features |= {
-            Feature('HDON', feature_pos_of_bond(od1, cg, A_dist)),
-            Feature('HDON', feature_pos_of_bond(od2, cg, A_dist))
+            Feature('HACC', feature_pos_of_bond(od1, cg, A_dist)),
+            Feature('HACC', feature_pos_of_bond(od2, cg, A_dist))
         }
 
     if N_dist >= 0:
@@ -214,7 +214,7 @@ def features_from_histidines_sidechain(residue):
             hydrogens = bonded_hydrogens(nitrogen)
             for hydrogen in hydrogens:
                 pos = feature_pos_of_bond(hydrogen, nitrogen, O_dist)
-                feature = Feature('HACC', pos)
+                feature = Feature('HDON', pos)
                 features.add(feature)
             if not hydrogens:
                 logging.warning(
@@ -241,8 +241,8 @@ def features_from_glutamicacids_sidechain(residue):
 
     if A_dist >= 0:
         features |= {
-            Feature('HDON', feature_pos_of_bond(oe1, cd, A_dist)),
-            Feature('HDON', feature_pos_of_bond(oe2, cd, A_dist))
+            Feature('HACC', feature_pos_of_bond(oe1, cd, A_dist)),
+            Feature('HACC', feature_pos_of_bond(oe2, cd, A_dist))
         }
 
     if N_dist >= 0:
@@ -269,12 +269,12 @@ def features_from_glutamines_sidechain(residue):
     oe1 = residue.atom(name='OE1')
     features = set()
     if A_dist >= 0:
-        features.add(Feature('HDON', feature_pos_of_bond(oe1, cd, A_dist)))
+        features.add(Feature('HACC', feature_pos_of_bond(oe1, cd, A_dist)))
 
     if O_dist >= 0:
         ne2 = residue.atom(name='NE2')
         for hydrogen in bonded_hydrogens(ne2):
-            feature = Feature('HACC', feature_pos_of_bond(hydrogen, ne2, O_dist))
+            feature = Feature('HDON', feature_pos_of_bond(hydrogen, ne2, O_dist))
             features.add(feature)
 
     return features
@@ -343,7 +343,7 @@ def features_from_lysine_donor_charged(residue):
 
     for hyd in bonded_hydrogens(nz):
         if O_dist >= 0:
-            features.add(Feature('HACC', feature_pos_of_bond(hyd, nz, O_dist)))
+            features.add(Feature('HDON', feature_pos_of_bond(hyd, nz, O_dist)))
         if P_dist >= 0:
             features.add(Feature('POSC', feature_pos_of_bond(hyd, nz, P_dist)))
 
@@ -442,13 +442,13 @@ def features_from_hydroxyl_sidechain(residue, oxygen_name, hydrogen_name, carbon
     h = og_hyds[0]
 
     if protonated and O_dist >= 0:
-        features.add(Feature('HACC', feature_pos_of_bond(h, og, O_dist)))
+        features.add(Feature('HDON', feature_pos_of_bond(h, og, O_dist)))
 
     if A_dist >= 0:
         feature_pos = feature_pos_of_bond_rotated(h, og, A_dist, 120, cb)
-        features.add(Feature('HDON', feature_pos))
+        features.add(Feature('HACC', feature_pos))
         feature_pos = feature_pos_of_bond_rotated(h, og, A_dist, -120, cb)
-        features.add(Feature('HDON', feature_pos))
+        features.add(Feature('HACC', feature_pos))
     return features
 
 
@@ -476,7 +476,7 @@ def features_from_sidechain_donor(residue: Residue):
     he1 = bonded_hydrogens(ne1)[0]
 
     feature_pos = feature_pos_of_bond(he1, ne1, O_dist)
-    features = {Feature('HACC', feature_pos)}
+    features = {Feature('HDON', feature_pos)}
 
     return features
 
