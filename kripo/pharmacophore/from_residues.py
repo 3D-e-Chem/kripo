@@ -218,7 +218,8 @@ def features_from_histidines_sidechain(residue):
                 features.add(feature)
             if not hydrogens:
                 logging.warning(
-                    'TODO: Not adding hydrogens to aromatic nitrogen, less features will be generated until this is implemented')
+                    'TODO: Not adding hydrogens to aromatic nitrogen of HIS, ' +
+                    'less features will be generated until this is implemented')
 
     if Rp_width >= 0:
         ring_center = center_of_atoms_by_name(residue, {'CG', 'NE2', 'CE1', 'CD2', 'ND1'})
