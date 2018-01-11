@@ -674,14 +674,11 @@ def test_from_site(block, expected, ligand_3heg_bax: Ligand):
     site = prep_site(block, ligand_3heg_bax.molecule)
 
     features = from_site(site)
-    # print(site.ligand().model().to_file_string('pdb'))
-    # print(features)
-    dump4molviewer(features, site)
 
     assert_features(expected, features)
 
 
-def dump_artificial_pdb_with_all_residues(all_res_site_pdb):
+def dump_artificial_pdb_with_all_residues(all_res_site_pdb='all_res_site.pdb'):
     """
 
     ```python
@@ -700,7 +697,7 @@ def dump_artificial_pdb_with_all_residues(all_res_site_pdb):
         f.write(block_with_ligand)
 
 
-def dump_pharmacophore_with_all_residues(all_res_site_phar):
+def dump_pharmacophore_with_all_residues(all_res_site_phar='all_res_site.phar'):
     """"
 
     ```python
@@ -717,23 +714,34 @@ def dump_pharmacophore_with_all_residues(all_res_site_phar):
         f.write(phar)
 
 
-def dump4molviewer(features, site):
-    """Dumps each pharmacophore/residue pair to a file.
+def dump4molviewer(filename='kripo-phar-molviewer.json'):
+    """Dumps each pharmacophore/residue pairs to a json file which can be viewed with the 3d-e-chem molviewer
 
-     When concatenated with `jq -s add  bla.*.json > bla.json` can be viewed in the KNIME molviewer
+    ```python
+    from tests.pharmacohore.test_from_site import dump4molviewer
+    dump4molviewer()
+    ```
+
     """
-    label = site.residue().name() + str(len(list(site.residue().atoms())))
-    data = [{
-        'id': label,
-        'label': label,
-        'protein': {
-            'data': site.ligand().model().to_file_string('pdb'),
-            'format': 'pdb',
-        },
-        'pharmacophore': {
-            'data': as_phar(label, feat2points(features)),
-            'format': 'phar',
-        },
-    }]
-    with open('bla.' + label + '.json', 'w') as f:
-        json.dump(data, f)
+    rows = []
+    ligand = ligands(pdb_from_file('tests/fixtures/3HEG.prepped.pdb'))[0]
+    for residue in residues:
+        block = residue.values[0]
+        features = residue.values[1]
+        site = prep_site(block, ligand.molecule)
+        label = site.residue().name() + str(len(list(site.residue().atoms())))
+        row = {
+            'id': label,
+            'label': label,
+            'protein': {
+                'data': site.ligand().model().to_file_string('pdb'),
+                'format': 'pdb',
+            },
+            'pharmacophore': {
+                'data': as_phar(label, feat2points(features)),
+                'format': 'phar',
+            },
+        }
+        rows.append(row)
+    with open(filename, 'w') as f:
+        json.dump(rows, f)

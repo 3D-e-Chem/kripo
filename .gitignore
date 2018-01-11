@@ -63,3 +63,7 @@ target/
 
 # IDE
 .idea
+
+kripo-phar-molviewer.json
+all_res_site.phar
+all_res_site.pdb
