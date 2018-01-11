@@ -237,15 +237,14 @@ def features_from_glutamicacids_sidechain(residue):
     oe2 = residue.atom(name='OE2')
 
     features = set()
-    cp = center_of_triangle(oe1, cd, oe2)
-
     if A_dist >= 0:
-        features |= {
-            Feature('HACC', feature_pos_of_bond(oe1, cd, A_dist)),
-            Feature('HACC', feature_pos_of_bond(oe2, cd, A_dist))
-        }
+        if oe1 and cd:
+            features.add(Feature('HACC', feature_pos_of_bond(oe1, cd, A_dist)))
+        if oe2 and cd:
+            features.add(Feature('HACC', feature_pos_of_bond(oe2, cd, A_dist)))
 
-    if N_dist >= 0:
+    if N_dist >= 0 and oe1 and cd and oe2:
+        cp = center_of_triangle(oe1, cd, oe2)
         middle_pos = feature_pos_of_bond(oe1, cd, N_dist)
         features |= {
             Feature('NEGC', above(middle_pos, cp, N_width)),
@@ -258,8 +257,10 @@ def features_from_glutamicacids_sidechain(residue):
             Feature('NEGC', below(middle_pos, cp, N_width)),
         }
 
+    if N_dist >= 0:
         cg = residue.atom(name='CG')
-        features.add(Feature('NEGC', feature_pos_of_bond(cd, cg, N_dist)))
+        if cd and cg:
+            features.add(Feature('NEGC', feature_pos_of_bond(cd, cg, N_dist)))
 
     return features
 
