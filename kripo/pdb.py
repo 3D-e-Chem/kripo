@@ -95,7 +95,7 @@ def pdb_from_atomium_pdb(pdb: Pdb, hydrogenate=True, clean=True) -> Pdb:
         A PDB entry which can optionally be hydrogenated and have it unwanted molecules removed.
     """
     if hydrogenate:
-        pdb = protonate(pdb)
+        pdb = protonate(pdb, het=False)
     if clean:
         remove_unwanted_molecules(pdb)
     return pdb
