@@ -59,13 +59,13 @@ def ligands(pdb: Pdb) -> List[Ligand]:
         NoLigands: When PDB has no ligands
 
     Returns:
-        List of ligands
+        List of ligands, ordered by name
     """
     model = pdb.model()
     ligs = {mol.name(): Ligand(mol) for mol in model.molecules(generic=True)}
     if not ligs:
         raise NoLigands()
-    return list(ligs.values())
+    return sorted(ligs.values(), key=lambda l: l.name())
 
 
 def pdb_from_file(path, hydrogenate=True, clean=True) -> Pdb:
