@@ -39,19 +39,15 @@ def generate(pdbs, fragments, pharmacophores, fingerprints):
 
     * FINGERPRINTS, Fingerprints database output file name
     """
-    fragments_db = FragmentsDb(fragments)
-    pharmacophores_db = PharmacophoresDb(pharmacophores, mode='w')
-    pharmacophore_points = pharmacophores_db.points
-    fingerprints_db = FingerprintsDb(fingerprints)
-    fingerprints_dict = fingerprints_db.as_dict(len(BIT_INFO))
 
-    for pdb_fn in pdbs:
-        pdb_fn = pdb_fn.strip()
-        generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict)
-
-    fragments_db.close()
-    pharmacophores_db.close()
-    fingerprints_db.close()
+    with FragmentsDb(fragments) as fragments_db, \
+            PharmacophoresDb(pharmacophores, mode='a') as pharmacophores_db, \
+            FingerprintsDb(fingerprints) as fingerprints_db:
+        pharmacophore_points = pharmacophores_db.points
+        fingerprints_dict = fingerprints_db.as_dict(len(BIT_INFO))
+        for pdb_fn in pdbs:
+                pdb_fn = pdb_fn.strip()
+                generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict)
 
 
 def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict):
