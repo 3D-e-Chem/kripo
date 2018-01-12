@@ -469,18 +469,22 @@ def features_from_hydroxyl_sidechain(residue, oxygen_name, hydrogen_name, carbon
 
 
 def features_from_threonine_sidechain(residue: Residue):
+    features = set()
     if H_dist < 0:
-        return set()
+        return features
+
     cg2 = residue.atom(name='CG2')
     cb = residue.atom(name='CB')
 
-    feature_pos = feature_pos_of_bond(cg2, cb, H_dist)
-    features = {Feature('LIPO', feature_pos)}
+    if cg2 and cb:
+        feature_pos = feature_pos_of_bond(cg2, cb, H_dist)
+        features = {Feature('LIPO', feature_pos)}
 
-    for hyd in bonded_hydrogens(cg2):
-        feature_pos = feature_pos_of_bond(hyd, cg2, H_dist)
-        feature = Feature('LIPO', feature_pos)
-        features.add(feature)
+    if cg2:
+        for hyd in bonded_hydrogens(cg2):
+            feature_pos = feature_pos_of_bond(hyd, cg2, H_dist)
+            feature = Feature('LIPO', feature_pos)
+            features.add(feature)
 
     return features
 
