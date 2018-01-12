@@ -66,7 +66,9 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
     click.echo('Parsing {0}'.format(pdb_fn))
     pdb = pdb_from_file(pdb_fn)
     for ligand in ligands(pdb):
+        click.echo('Ligand {0}'.format(ligand.name()))
         for frag_nr, fragment in enumerate(ligand.fragments(), 1):
+            click.echo('Fragment {0}'.format(frag_nr))
             generate_from_fragment(pdb,
                                    ligand,
                                    fragment,
