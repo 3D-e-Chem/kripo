@@ -94,10 +94,12 @@ def pdb_from_atomium_pdb(pdb: Pdb, hydrogenate=True, clean=True) -> Pdb:
     Returns:
         A PDB entry which can optionally be hydrogenated and have it unwanted molecules removed.
     """
-    if hydrogenate:
-        pdb = protonate(pdb, het=False)
     if clean:
         remove_unwanted_molecules(pdb)
+    if hydrogenate:
+        pdb = protonate(pdb, het=True)
+    if clean:
+        remove_non_contacting_molecules(pdb)
     return pdb
 
 
@@ -107,7 +109,6 @@ def remove_unwanted_molecules(pdb: Pdb):
     Cleans pdb by removing molecules which:
         * Have name in UNWANTED_HETEROS list
         * Is out side LIGAND_MAX_MASS..LIGAND_MIN_MASS mass range
-        * Is more then MAX_CONTACT_DISTANCE away from protein
         * Have name already processed (aka removes duplicates)
 
     Removing is done in-place.
@@ -121,12 +122,30 @@ def remove_unwanted_molecules(pdb: Pdb):
     for mol in sorted(model.molecules(generic=True), key=lambda m: m.molecule_id()):
         is_unwanted = mol.name() in UNWANTED_HETEROS
         in_mass_range = LIGAND_MIN_MASS < mol.mass() < LIGAND_MAX_MASS
-        in_contact_with_protein = ligand_contacts_protein(mol, model)
         seen_before = mol.name() in unique_names
-        if is_unwanted or not in_mass_range or not in_contact_with_protein or seen_before:
+        if is_unwanted or not in_mass_range or seen_before:
             model.remove_molecule(mol)
         else:
             unique_names.add(mol.name())
+
+
+def remove_non_contacting_molecules(pdb: Pdb):
+    """Remove unwanted molecules from model
+
+    Cleans pdb by removing molecules which:
+        * Is more then MAX_CONTACT_DISTANCE away from protein
+
+    Removing is done in-place.
+
+    Args:
+        pdb: Atomium PDB entry containing possible unwanted molecules
+
+    """
+    model = pdb.model()
+    for mol in sorted(model.molecules(generic=True), key=lambda m: m.molecule_id()):
+        in_contact_with_protein = ligand_contacts_protein(mol, model)
+        if not in_contact_with_protein:
+            model.remove_molecule(mol)
 
 
 def ligand_contacts_protein(ligand: Molecule, model: Model) -> bool:
