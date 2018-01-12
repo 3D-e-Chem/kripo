@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Console script for kripo."""
+from sqlite3 import IntegrityError
 
 import click
 
@@ -93,7 +94,10 @@ def generate_from_fragment(pdb, ligand, fragment, frag_nr, fragments_db, pharmac
     except NoFeatures:
         msg = 'Fragment {0} of ligand {1} of pdb {2} ' \
               'contains no pharmacophore features, skipping'.format(frag_nr, ligand.id(), pdb.code())
-        click.echo(msg)
+        click.secho(msg, bold=True)
+    except IntegrityError:
+        msg = 'Fragment {0} of ligand {1} of pdb {2} already present, skipping'.format(frag_nr, ligand.id(), pdb.code())
+        click.secho(msg, bold=True)
 
 
 def build_frag_id(thepdb, ligand, frag_nr):
