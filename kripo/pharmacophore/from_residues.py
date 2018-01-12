@@ -279,11 +279,11 @@ def features_from_glutamines_sidechain(residue):
     cd = residue.atom(name='CD')
     oe1 = residue.atom(name='OE1')
     features = set()
-    if A_dist >= 0:
+    if A_dist >= 0 and cd and oe1:
         features.add(Feature('HACC', feature_pos_of_bond(oe1, cd, A_dist)))
 
-    if O_dist >= 0:
-        ne2 = residue.atom(name='NE2')
+    ne2 = residue.atom(name='NE2')
+    if O_dist >= 0 and ne2:
         for hydrogen in bonded_hydrogens(ne2):
             feature = Feature('HDON', feature_pos_of_bond(hydrogen, ne2, O_dist))
             features.add(feature)
