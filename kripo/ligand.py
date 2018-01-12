@@ -2,7 +2,7 @@ from typing import List
 
 from atomium.structures.chains import Site
 from atomium.structures.molecules import Molecule
-from rdkit.Chem import MolFromPDBBlock
+from rdkit.Chem import MolFromPDBBlock, SanitizeMol
 from rdkit.Chem.Descriptors import MolWt
 
 from .reactor import Reactor
@@ -57,7 +57,10 @@ class Ligand:
 
         """
         block = self.pdb_block()
-        reactant = MolFromPDBBlock(block)
+        reactant = MolFromPDBBlock(block, sanitize=False)
+        if not reactant:
+            raise ValueError('RDKit unable to read ligand ' + self.name())
+        SanitizeMol(reactant)
         mols = [reactant]
         products = Reactor().react(reactant)
         mols.extend(products)
