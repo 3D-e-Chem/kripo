@@ -66,15 +66,17 @@ def features_from_sidechain_hydrophobes(residue):
         return features
 
     cb = residue.atom(name='CB')
+    if cb:
+        for hyd in bonded_hydrogens(cb):
+            feature_pos = feature_pos_of_bond(hyd, cb, H_dist)
+            feature = Feature('LIPO', feature_pos)
+            features.add(feature)
     cg = residue.atom(name='CG')
-    for hyd in bonded_hydrogens(cb):
-        feature_pos = feature_pos_of_bond(hyd, cb, H_dist)
-        feature = Feature('LIPO', feature_pos)
-        features.add(feature)
-    for hyd in bonded_hydrogens(cg):
-        feature_pos = feature_pos_of_bond(hyd, cg, H_dist)
-        feature = Feature('LIPO', feature_pos)
-        features.add(feature)
+    if cg:
+        for hyd in bonded_hydrogens(cg):
+            feature_pos = feature_pos_of_bond(hyd, cg, H_dist)
+            feature = Feature('LIPO', feature_pos)
+            features.add(feature)
     return features
 
 
@@ -99,14 +101,15 @@ def features_from_sidechain_positives(residue):
     nh1 = residue.atom(name='NH1')
     nh2 = residue.atom(name='NH2')
 
-    cp = center_of_triangle(nh1, cz, nh2)
+    if cz and nh1 and nh2:
+        cp = center_of_triangle(nh1, cz, nh2)
 
-    for nitrogen in sidechain_nitrogens(residue):
-        middle_pos = feature_pos_of_bond(nitrogen, cz, P_dist)
-        features |= {
-            Feature('POSC', above(middle_pos, cp, P_width)),
-            Feature('POSC', below(middle_pos, cp, P_width))
-        }
+        for nitrogen in sidechain_nitrogens(residue):
+            middle_pos = feature_pos_of_bond(nitrogen, cz, P_dist)
+            features |= {
+                Feature('POSC', above(middle_pos, cp, P_width)),
+                Feature('POSC', below(middle_pos, cp, P_width))
+            }
 
     return features
 
@@ -172,12 +175,15 @@ def features_from_sidechain_sulfur(residue):
             feature_pos = feature_pos_of_bond(hyd, c, H_dist)
             feature = Feature('LIPO', feature_pos)
             features.add(feature)
-    swapped_res = add_hydrogens2sulfur_as_carbon(residue)
-    for s in swapped_res.atoms(element='S'):
-        for hyd in bonded_hydrogens(s):
-            feature_pos = feature_pos_of_bond(hyd, s, H_dist)
-            feature = Feature('LIPO', feature_pos)
-            features.add(feature)
+    try:
+        swapped_res = add_hydrogens2sulfur_as_carbon(residue)
+        for s in swapped_res.atoms(element='S'):
+            for hyd in bonded_hydrogens(s):
+                feature_pos = feature_pos_of_bond(hyd, s, H_dist)
+                feature = Feature('LIPO', feature_pos)
+                features.add(feature)
+    except ValueError:
+        logging.warning('Unable to determine plane for sulfur LIPO features')
     return features
 
 
@@ -287,23 +293,29 @@ def features_from_isoleucine_sidechain(residue):
         return features
 
     cg1 = residue.atom(name='CG1')
-    for hyd in bonded_hydrogens(cg1):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyd, cg1, H_dist)))
+    if cg1:
+        for hyd in bonded_hydrogens(cg1):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyd, cg1, H_dist)))
 
     cd1 = residue.atom(name='CD1')
-    features.add(Feature('LIPO', feature_pos_of_bond(cd1, cg1, H_dist)))
-    for hyd in bonded_hydrogens(cd1):
-        # TODO check if LIPO on CD1 hydrogens should be added always, even if H_dist < 0
-        features.add(Feature('LIPO', feature_pos_of_bond(hyd, cd1, H_dist)))
+    if cg1 and cd1:
+        features.add(Feature('LIPO', feature_pos_of_bond(cd1, cg1, H_dist)))
+    if cd1:
+        for hyd in bonded_hydrogens(cd1):
+            # TODO check if LIPO on CD1 hydrogens should be added always, even if H_dist < 0
+            features.add(Feature('LIPO', feature_pos_of_bond(hyd, cd1, H_dist)))
 
     cg2 = residue.atom(name='CG2')
-    for hyd in bonded_hydrogens(cg2):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyd, cg2, H_dist)))
+    if cg2:
+        for hyd in bonded_hydrogens(cg2):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyd, cg2, H_dist)))
 
     cb = residue.atom(name='CB')
-    features.add(Feature('LIPO', feature_pos_of_bond(cg2, cb, H_dist)))
-    for hyd in bonded_hydrogens(cb):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyd, cb, H_dist)))
+    if cb and cg2:
+        features.add(Feature('LIPO', feature_pos_of_bond(cg2, cb, H_dist)))
+    if cb:
+        for hyd in bonded_hydrogens(cb):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyd, cb, H_dist)))
 
     return features
 
@@ -339,14 +351,15 @@ def features_from_lysine_donor_charged(residue):
     nz = residue.atom(name='NZ')
 
     features = set()
-    if P_dist >= 0:
+    if P_dist >= 0 and ce and nz:
         features.add(Feature('POSC', feature_pos_of_bond(nz, ce, P_dist)))
 
-    for hyd in bonded_hydrogens(nz):
-        if O_dist >= 0:
-            features.add(Feature('HDON', feature_pos_of_bond(hyd, nz, O_dist)))
-        if P_dist >= 0:
-            features.add(Feature('POSC', feature_pos_of_bond(hyd, nz, P_dist)))
+    if nz:
+        for hyd in bonded_hydrogens(nz):
+            if O_dist >= 0:
+                features.add(Feature('HDON', feature_pos_of_bond(hyd, nz, O_dist)))
+            if P_dist >= 0:
+                features.add(Feature('POSC', feature_pos_of_bond(hyd, nz, P_dist)))
 
     return features
 
@@ -361,12 +374,14 @@ def features_from_lysine_hydropobe(residue):
         features.add(Feature('LIPO', feature_pos_of_bond(hyb, cb, H_dist)))
 
     cg = residue.atom(name='CG')
-    for hyb in bonded_hydrogens(cg):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyb, cg, H_dist)))
+    if cg:
+        for hyb in bonded_hydrogens(cg):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyb, cg, H_dist)))
 
     cd = residue.atom(name='CD')
-    for hyb in bonded_hydrogens(cd):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyb, cd, H_dist)))
+    if cd:
+        for hyb in bonded_hydrogens(cd):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyb, cd, H_dist)))
 
     return features
 
