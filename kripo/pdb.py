@@ -48,6 +48,8 @@ MAX_CONTACT_DISTANCE = 2.5
 class NoLigands(ValueError):
     pass
 
+class PdbDumpError(TypeError):
+    pass
 
 def ligands(pdb: Pdb) -> List[Ligand]:
     """Ligands of a pdb
@@ -97,7 +99,10 @@ def pdb_from_atomium_pdb(pdb: Pdb, hydrogenate=True, clean=True) -> Pdb:
     if clean:
         remove_unwanted_molecules(pdb)
     if hydrogenate:
-        pdb = protonate(pdb, het=True)
+        try:
+            pdb = protonate(pdb, het=True)
+        except TypeError:
+            raise PdbDumpError(pdb)
     if clean:
         remove_non_contacting_molecules(pdb)
     return pdb

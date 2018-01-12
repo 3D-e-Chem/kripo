@@ -12,7 +12,7 @@ from .fingerprint.threepoint import BIT_INFO
 from .fragment import Fragment
 from .ligand import Ligand, RdkitParseError
 from .pharmacophore import from_fragment, NoFeatures
-from .pdb import pdb_from_file, ligands
+from .pdb import pdb_from_file, ligands, PdbDumpError
 from .site import chain_of_site
 
 
@@ -47,7 +47,11 @@ def generate(pdbs, fragments, pharmacophores, fingerprints):
         fingerprints_dict = fingerprints_db.as_dict(len(BIT_INFO))
         for pdb_fn in pdbs:
                 pdb_fn = pdb_fn.strip()
-                generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict)
+                try:
+                    generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict)
+                except PdbDumpError:
+                    msg = 'Unable to dump {0}, skipping'.format(pdb_fn)
+                    click.secho(msg, bold=True)
 
 
 def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict):
