@@ -9,6 +9,10 @@ from .reactor import Reactor
 from .fragment import Fragment, BINDING_SITE_RADIUS
 
 
+class RdkitParseError(ValueError):
+    pass
+
+
 class Ligand:
     """Ligand of a ligand-protein complex
 
@@ -59,12 +63,12 @@ class Ligand:
         block = self.pdb_block()
         reactant = MolFromPDBBlock(block, sanitize=False)
         if not reactant:
-            raise ValueError('RDKit unable to read ligand ' + self.name())
+            raise RdkitParseError('RDKit unable to read ligand ' + self.name())
         try:
             SanitizeMol(reactant)
         except ValueError as e:
             # TODO try to fix reactant so it passes SanitizeMol
-            raise e
+            raise RdkitParseError(*e.args)
         mols = [reactant]
         products = Reactor().react(reactant)
         mols.extend(products)

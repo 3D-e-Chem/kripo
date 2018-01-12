@@ -10,7 +10,7 @@ from kripodb.pharmacophores import PharmacophoresDb
 
 from .fingerprint.threepoint import BIT_INFO
 from .fragment import Fragment
-from .ligand import Ligand
+from .ligand import Ligand, RdkitParseError
 from .pharmacophore import from_fragment, NoFeatures
 from .pdb import pdb_from_file, ligands
 from .site import chain_of_site
@@ -64,15 +64,19 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
     pdb = pdb_from_file(pdb_fn)
     for ligand in ligands(pdb):
         click.echo('Ligand {0}'.format(ligand.name()))
-        for frag_nr, fragment in enumerate(ligand.fragments(), 1):
-            click.echo('Fragment {0}'.format(frag_nr))
-            generate_from_fragment(pdb,
-                                   ligand,
-                                   fragment,
-                                   frag_nr,
-                                   fragments_db,
-                                   pharmacophore_points,
-                                   fingerprints_dict)
+        try:
+            for frag_nr, fragment in enumerate(ligand.fragments(), 1):
+                click.echo('Fragment {0}'.format(frag_nr))
+                generate_from_fragment(pdb,
+                                       ligand,
+                                       fragment,
+                                       frag_nr,
+                                       fragments_db,
+                                       pharmacophore_points,
+                                       fingerprints_dict)
+        except RdkitParseError:
+            msg = 'Ligand {0} of {1} was not parseable by RDKit, skipping'.format(ligand.name(), pdb.code())
+            click.secho(msg, bold=True)
 
 
 def generate_from_fragment(pdb, ligand, fragment, frag_nr, fragments_db, pharmacophore_points, fingerprints_dict):
@@ -92,7 +96,7 @@ def generate_from_fragment(pdb, ligand, fragment, frag_nr, fragments_db, pharmac
               'contains no pharmacophore features, skipping'.format(frag_nr, ligand.id(), pdb.code())
         click.secho(msg, bold=True)
     except IntegrityError:
-        msg = 'Fragment {0} of ligand {1} of pdb {2} already present, skipping'.format(frag_nr, ligand.id(), pdb.code())
+        msg = 'Fragment {0} of ligand {1} of pdb {2} already present, skipping'.format(frag_nr, ligand.name(), pdb.code())
         click.secho(msg, bold=True)
 
 
