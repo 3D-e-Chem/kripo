@@ -120,12 +120,12 @@ def features_from_asparagine_sidechain(residue):
     nd2 = residue.atom(name='ND2')
 
     features = set()
-    if A_dist >= 0:
+    if A_dist >= 0 and od1 and cg:
         feature_pos = feature_pos_of_bond(od1, cg, A_dist)
         feature = Feature('HACC', feature_pos)
         features.add(feature)
 
-    if O_dist >= 0:
+    if O_dist >= 0 and nd2:
         for hyd in bonded_hydrogens(nd2):
             feature_pos = feature_pos_of_bond(hyd, nd2, O_dist)
             feature = Feature('HDON', feature_pos)
@@ -143,25 +143,27 @@ def features_from_asparticacids_sidechain(residue):
     cp = center_of_triangle(od1, cg, od2)
 
     features = set()
-    if A_dist >= 0:
-        features |= {
-            Feature('HACC', feature_pos_of_bond(od1, cg, A_dist)),
-            Feature('HACC', feature_pos_of_bond(od2, cg, A_dist))
-        }
+    if A_dist >= 0 and cg:
+        if od1:
+            features.add(Feature('HACC', feature_pos_of_bond(od1, cg, A_dist)))
+        if od2:
+            features.add(Feature('HACC', feature_pos_of_bond(od2, cg, A_dist)))
 
-    if N_dist >= 0:
-        middle_pos = feature_pos_of_bond(od1, cg, N_dist)
-        features |= {
-            Feature('NEGC', above(middle_pos, cp, N_width)),
-            Feature('NEGC', below(middle_pos, cp, N_width)),
-        }
+    if N_dist >= 0 and cg:
+        if od1:
+            middle_pos = feature_pos_of_bond(od1, cg, N_dist)
+            features |= {
+                Feature('NEGC', above(middle_pos, cp, N_width)),
+                Feature('NEGC', below(middle_pos, cp, N_width)),
+            }
 
-        middle_pos = feature_pos_of_bond(od2, cg, N_dist)
-        features |= {
-            Feature('NEGC', above(middle_pos, cp, N_width)),
-            Feature('NEGC', below(middle_pos, cp, N_width)),
-            Feature('NEGC', feature_pos_of_bond(cg, cb, N_dist)),
-        }
+        if od2:
+            middle_pos = feature_pos_of_bond(od2, cg, N_dist)
+            features |= {
+                Feature('NEGC', above(middle_pos, cp, N_width)),
+                Feature('NEGC', below(middle_pos, cp, N_width)),
+                Feature('NEGC', feature_pos_of_bond(cg, cb, N_dist)),
+            }
 
     return features
 
