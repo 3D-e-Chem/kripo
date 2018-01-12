@@ -92,6 +92,7 @@ def generate_from_fragment(pdb, ligand, fragment, frag_nr, fragments_db, pharmac
         pharmacophore = from_fragment(fragment)
         fingerprint = pharmacophore.fingerprint()
 
+        click.echo('Saving fragment/pharmacophore/fingerprint')
         add_fragment2db(pdb, ligand, frag_nr, fragment, fragments_db)
         add_pharmacophore2db(pharmacophore_points, frag_id, pharmacophore)
         fingerprints_dict[frag_id] = fingerprint

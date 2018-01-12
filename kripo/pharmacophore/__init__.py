@@ -1,3 +1,4 @@
+import logging
 from typing import Set
 
 from atomium.structures.chains import Site
@@ -94,8 +95,11 @@ def from_site(site: Site):
         'VAL': features_from_valine,
     }
     for residue in site.residues():
-        features |= mappers[residue.name()](residue)
-
+        try:
+            features |= mappers[residue.name()](residue)
+        except KeyError:
+            logging.warning('Unknown residue {0}, skipping'.format(residue.name()))
+            pass
     features = annihilate_neighbouring_donors_and_acceptors(features)
 
     return features
