@@ -12,7 +12,7 @@ from .fingerprint.threepoint import BIT_INFO
 from .fragment import Fragment
 from .ligand import Ligand, RdkitParseError
 from .pharmacophore import from_fragment, NoFeatures
-from .pdb import pdb_from_file, ligands, PdbDumpError
+from .pdb import pdb_from_file, ligands, PdbDumpError, NoLigands
 from .site import chain_of_site
 
 
@@ -52,6 +52,9 @@ def generate(pdbs, fragments, pharmacophores, fingerprints):
                 except PdbDumpError:
                     msg = 'Unable to dump {0}, skipping'.format(pdb_fn)
                     click.secho(msg, bold=True)
+                except NoLigands:
+                    msg = 'No ligands found in {0}, skipping'.format(pdb_fn)
+                    click.secho(msg, bold=True)
 
 
 def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict):
@@ -68,6 +71,10 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
     pdb = pdb_from_file(pdb_fn)
     for ligand in ligands(pdb):
         click.echo('Ligand {0}'.format(ligand.name()))
+        if is_ligand_stored(fragments_db, pdb.code(), ligand.name()):
+            msg = 'Ligand {0} of pdb {1} already present, skipping'.format(pdb.code(), ligand.name())
+            click.secho(msg, bold=True)
+            continue
         try:
             for frag_nr, fragment in enumerate(ligand.fragments(), 1):
                 click.echo('Fragment {0}'.format(frag_nr))
@@ -109,6 +116,13 @@ def build_frag_id(thepdb, ligand, frag_nr):
     pdb_code = thepdb.code().lower()
     het_code = ligand.name()
     return pdb_code + '_' + het_code + '_frag' + str(frag_nr)
+
+
+def is_ligand_stored(fragments_db, pdb_code, het_code):
+    sql = 'SELECT 1 FROM fragments WHERE pdb_code=? AND het_code=?'
+    fragments_db.cursor.execute(sql, (pdb_code.lower(), het_code))
+    res = fragments_db.cursor.fetchone()
+    return res is not None
 
 
 def add_fragment2db(thepdb, ligand: Ligand, frag_nr, fragment: Fragment, fragments_db):

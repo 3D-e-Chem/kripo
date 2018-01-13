@@ -195,26 +195,7 @@ def features_from_cysteine_sidechain(residue):
 
 
 def features_from_histidines_sidechain(residue):
-    ne2 = residue.atom(name='NE2')
-    ce1 = residue.atom(name='CE1')
-    cd2 = residue.atom(name='CD2')
-
-    cp = center_of_triangle(ne2, cd2, ce1)
-
     features = set()
-    ring_atom_names = {'NE2', 'CE1', 'CD2', 'ND1'}
-    ring_atoms = [a for a in residue.atoms() if a.name() in ring_atom_names]
-    ring_hydrogens = set()
-    for ring_atom in ring_atoms:
-        ring_hydrogens.update(bonded_hydrogens(ring_atom))
-    if len(ring_hydrogens) == 4 and P_width >= 0:
-        for ring_atom in ring_atoms:
-            hyd = bonded_hydrogens(ring_atom)[0]
-            middle_pos = feature_pos_of_bond(hyd, ring_atom, P_dist)
-            features |= {
-                Feature('POSC', above(middle_pos, cp, P_width)),
-                Feature('POSC', below(middle_pos, cp, P_width)),
-            }
 
     ring_nitrogen_names = {'NE2', 'ND1'}
     ring_nitrogens = [a for a in residue.atoms() if a.name() in ring_nitrogen_names]
@@ -230,6 +211,29 @@ def features_from_histidines_sidechain(residue):
                     'TODO: Not adding hydrogens to aromatic nitrogen of HIS, ' +
                     'less features will be generated until this is implemented, ' +
                     'of residue {0}'.format(residue))
+
+    ne2 = residue.atom(name='NE2')
+    ce1 = residue.atom(name='CE1')
+    cd2 = residue.atom(name='CD2')
+
+    if not(ne2 and ce1 and cd2):
+        return features
+
+    cp = center_of_triangle(ne2, cd2, ce1)
+
+    ring_atom_names = {'NE2', 'CE1', 'CD2', 'ND1'}
+    ring_atoms = [a for a in residue.atoms() if a.name() in ring_atom_names]
+    ring_hydrogens = set()
+    for ring_atom in ring_atoms:
+        ring_hydrogens.update(bonded_hydrogens(ring_atom))
+    if len(ring_hydrogens) == 4 and P_width >= 0:
+        for ring_atom in ring_atoms:
+            hyd = bonded_hydrogens(ring_atom)[0]
+            middle_pos = feature_pos_of_bond(hyd, ring_atom, P_dist)
+            features |= {
+                Feature('POSC', above(middle_pos, cp, P_width)),
+                Feature('POSC', below(middle_pos, cp, P_width)),
+            }
 
     if Rp_width >= 0:
         ring_center = center_of_atoms_by_name(residue, {'CG', 'NE2', 'CE1', 'CD2', 'ND1'})
