@@ -18,6 +18,9 @@ N_dist = 1.4  # NEGATIVE CHARGES
 N_width = 1.0  # NEGATIVE CHARGES
 
 
+logger = logging.getLogger('residue2phar')
+
+
 def features_from_backbone_amine(residue: Residue):
     if O_dist < 0:
         return set()
@@ -27,7 +30,7 @@ def features_from_backbone_amine(residue: Residue):
         feature_pos = feature_pos_of_bond(hydrogen, nitrogen, O_dist)
         return {Feature('HDON', feature_pos)}
     except IndexError:
-        logging.warning('Skipping amine backbone feature as residue {0} has no N-H bond'.format(residue))
+        logger.warning('Skipping amine backbone feature as residue {0} has no N-H bond'.format(residue))
         return set()
 
 
@@ -186,7 +189,7 @@ def features_from_sidechain_sulfur(residue):
                 features.add(feature)
     except ValueError:
         msg = 'Unable to determine plane for sulfur LIPO features of residue {0}'.format(residue)
-        logging.warning(msg)
+        logger.warning(msg)
     return features
 
 
@@ -207,7 +210,7 @@ def features_from_histidines_sidechain(residue):
                 feature = Feature('HDON', pos)
                 features.add(feature)
             if not hydrogens:
-                logging.warning(
+                logger.warning(
                     'TODO: Not adding hydrogens to aromatic nitrogen of HIS, ' +
                     'less features will be generated until this is implemented, ' +
                     'of residue {0}'.format(residue))
@@ -457,11 +460,11 @@ def features_from_hydroxyl_sidechain(residue, oxygen_name, hydrogen_name, carbon
 
     features = set()
     if not og:
-        logging.warning('Skipping hydroxyl sidechain features as residue {0} has no oxygen'.format(residue))
+        logger.warning('Skipping hydroxyl sidechain features as residue {0} has no oxygen'.format(residue))
         return features
     og_hyds = bonded_hydrogens(og)
     if len(og_hyds) == 0:
-        logging.warning('Skipping hydroxyl sidechain features as residue {0} has no O-H bond'.format(residue))
+        logger.warning('Skipping hydroxyl sidechain features as residue {0} has no O-H bond'.format(residue))
         return features
     h = og_hyds[0]
 
@@ -556,7 +559,7 @@ def features_from_tyrosine_sidechain_ring(residue: Residue):
     ce1 = residue.atom(name='CE1')
 
     if not (cz and cg and ce1):
-        logging.warning('Skipping ring side chain features as residue {0} has no ring'.format(residue))
+        logger.warning('Skipping ring side chain features as residue {0} has no ring'.format(residue))
         return features
 
     cp = center_of_triangle(cz, cg, ce1)
@@ -597,16 +600,22 @@ def features_from_valine_sidechain(residue: Residue):
     cg1 = residue.atom(name='CG1')
     cg2 = residue.atom(name='CG2')
 
-    for hyd in bonded_hydrogens(cb):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyd, cb, H_dist)))
+    if cb:
+        for hyd in bonded_hydrogens(cb):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyd, cb, H_dist)))
 
-    features.add(Feature('LIPO', feature_pos_of_bond(cg1, cb, H_dist)))
-    for hyd in bonded_hydrogens(cg1):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyd, cg1, H_dist)))
+    if cb and cg1:
+        features.add(Feature('LIPO', feature_pos_of_bond(cg1, cb, H_dist)))
 
-    features.add(Feature('LIPO', feature_pos_of_bond(cg2, cb, H_dist)))
-    for hyd in bonded_hydrogens(cg2):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyd, cg2, H_dist)))
+    if cg1:
+        for hyd in bonded_hydrogens(cg1):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyd, cg1, H_dist)))
+
+    if cg2 and cb:
+        features.add(Feature('LIPO', feature_pos_of_bond(cg2, cb, H_dist)))
+    if cg2:
+        for hyd in bonded_hydrogens(cg2):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyd, cg2, H_dist)))
 
     return features
 
