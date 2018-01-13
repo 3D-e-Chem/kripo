@@ -337,22 +337,28 @@ def features_from_leucine_sidechain(residue):
         return features
 
     cg = residue.atom(name='CG')
-    for hyd in bonded_hydrogens(cg):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyd, cg, H_dist)))
+    if cg:
+        for hyd in bonded_hydrogens(cg):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyd, cg, H_dist)))
 
     cd1 = residue.atom(name='CD1')
-    features.add(Feature('LIPO', feature_pos_of_bond(cd1, cg, H_dist)))
-    for hyd in bonded_hydrogens(cd1):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyd, cd1, H_dist)))
+    if cd1 and cg:
+        features.add(Feature('LIPO', feature_pos_of_bond(cd1, cg, H_dist)))
+    if cd1:
+        for hyd in bonded_hydrogens(cd1):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyd, cd1, H_dist)))
 
     cb = residue.atom(name='CB')
-    for hyd in bonded_hydrogens(cb):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyd, cb, H_dist)))
+    if cb:
+        for hyd in bonded_hydrogens(cb):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyd, cb, H_dist)))
 
     cd2 = residue.atom(name='CD2')
-    features.add(Feature('LIPO', feature_pos_of_bond(cd2, cg, H_dist)))
-    for hyd in bonded_hydrogens(cd2):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyd, cd2, H_dist)))
+    if cd2 and cg:
+        features.add(Feature('LIPO', feature_pos_of_bond(cd2, cg, H_dist)))
+    if cd2:
+        for hyd in bonded_hydrogens(cd2):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyd, cd2, H_dist)))
 
     return features
 
