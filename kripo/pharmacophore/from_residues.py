@@ -413,31 +413,33 @@ def features_from_phenylalanine_sidechain(residue):
 
     features = set()
 
-    cp = center_of_triangle(cg, cd1, cz)
-    ring_atom_names = {'CG', 'CE2', 'CE1', 'CD2', 'CD1', 'CZ'}
-    ring_center = center_of_atoms_by_name(residue, ring_atom_names)
+    if cg and cd1 and cz:
+        cp = center_of_triangle(cg, cd1, cz)
+        ring_atom_names = {'CG', 'CE2', 'CE1', 'CD2', 'CD1', 'CZ'}
+        ring_center = center_of_atoms_by_name(residue, ring_atom_names)
 
-    if Rp_width >= 0:
-        features |= {
-            Feature('AROM', above(ring_center, cp, Rp_width)),
-            Feature('AROM', below(ring_center, cp, Rp_width)),
-        }
+        if Rp_width >= 0:
+            features |= {
+                Feature('AROM', above(ring_center, cp, Rp_width)),
+                Feature('AROM', below(ring_center, cp, Rp_width)),
+            }
 
-    if H_dist >= 0:
-        features |= {
-            Feature('LIPO', above(ring_center, cp, H_dist)),
-            Feature('LIPO', below(ring_center, cp, H_dist)),
-        }
+        if H_dist >= 0:
+            features |= {
+                Feature('LIPO', above(ring_center, cp, H_dist)),
+                Feature('LIPO', below(ring_center, cp, H_dist)),
+            }
 
     ring_atoms = [a for a in residue.atoms() if a.name() in ring_atom_names]
     for ring_atom in ring_atoms:
-        hyds = bonded_hydrogens(ring_atom)
-        if hyds:
-            hyd = hyds[0]
-            if Rt_dist >= 0:
-                features.add(Feature('AROM', feature_pos_of_bond(hyd, ring_atom, Rt_dist)))
-            if H_dist >= 0:
-                features.add(Feature('LIPO', feature_pos_of_bond(hyd, ring_atom, H_dist)))
+        if ring_atom:
+            hyds = bonded_hydrogens(ring_atom)
+            if hyds:
+                hyd = hyds[0]
+                if Rt_dist >= 0:
+                    features.add(Feature('AROM', feature_pos_of_bond(hyd, ring_atom, Rt_dist)))
+                if H_dist >= 0:
+                    features.add(Feature('LIPO', feature_pos_of_bond(hyd, ring_atom, H_dist)))
 
     return features
 

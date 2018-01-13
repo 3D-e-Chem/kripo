@@ -72,7 +72,7 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
     for ligand in ligands(pdb):
         click.echo('Ligand {0}'.format(ligand.name()))
         if is_ligand_stored(fragments_db, pdb.code(), ligand.name()):
-            msg = 'Ligand {0} of pdb {1} already present, skipping'.format(pdb.code(), ligand.name())
+            msg = 'Ligand {0} of pdb {1} already present, skipping'.format(ligand.name(), pdb.code())
             click.secho(msg, bold=True)
             continue
         try:
