@@ -413,9 +413,9 @@ def features_from_phenylalanine_sidechain(residue):
 
     features = set()
 
+    ring_atom_names = {'CG', 'CE2', 'CE1', 'CD2', 'CD1', 'CZ'}
     if cg and cd1 and cz:
         cp = center_of_triangle(cg, cd1, cz)
-        ring_atom_names = {'CG', 'CE2', 'CE1', 'CD2', 'CD1', 'CZ'}
         ring_center = center_of_atoms_by_name(residue, ring_atom_names)
 
         if Rp_width >= 0:
