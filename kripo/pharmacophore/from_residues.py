@@ -143,8 +143,6 @@ def features_from_asparticacids_sidechain(residue):
     od1 = residue.atom(name='OD1')
     od2 = residue.atom(name='OD2')
 
-    cp = center_of_triangle(od1, cg, od2)
-
     features = set()
     if A_dist >= 0 and cg:
         if od1:
@@ -153,20 +151,21 @@ def features_from_asparticacids_sidechain(residue):
             features.add(Feature('HACC', feature_pos_of_bond(od2, cg, A_dist)))
 
     if N_dist >= 0 and cg:
-        if od1:
+        if od1 and od2:
+            cp = center_of_triangle(od1, cg, od2)
             middle_pos = feature_pos_of_bond(od1, cg, N_dist)
             features |= {
                 Feature('NEGC', above(middle_pos, cp, N_width)),
                 Feature('NEGC', below(middle_pos, cp, N_width)),
             }
 
-        if od2:
             middle_pos = feature_pos_of_bond(od2, cg, N_dist)
             features |= {
                 Feature('NEGC', above(middle_pos, cp, N_width)),
                 Feature('NEGC', below(middle_pos, cp, N_width)),
-                Feature('NEGC', feature_pos_of_bond(cg, cb, N_dist)),
             }
+        if cb:
+            features.add(Feature('NEGC', feature_pos_of_bond(cg, cb, N_dist)))
 
     return features
 
@@ -387,8 +386,9 @@ def features_from_lysine_hydropobe(residue):
         return features
 
     cb = residue.atom(name='CB')
-    for hyb in bonded_hydrogens(cb):
-        features.add(Feature('LIPO', feature_pos_of_bond(hyb, cb, H_dist)))
+    if cb:
+        for hyb in bonded_hydrogens(cb):
+            features.add(Feature('LIPO', feature_pos_of_bond(hyb, cb, H_dist)))
 
     cg = residue.atom(name='CG')
     if cg:
@@ -408,7 +408,8 @@ def features_from_methionine_sidechain(residue):
     if H_dist >= 0:
         sg = residue.atom(name='SD')
         ce = residue.atom(name='CE')
-        features.add(Feature('LIPO', feature_pos_of_bond(ce, sg, H_dist)))
+        if sg and ce:
+            features.add(Feature('LIPO', feature_pos_of_bond(ce, sg, H_dist)))
     return features
 
 
@@ -509,13 +510,16 @@ def features_from_threonine_sidechain(residue: Residue):
 
 
 def features_from_sidechain_donor(residue: Residue):
+    features = set()
     if O_dist < 0:
-        return set()
+        return features
     ne1 = residue.atom(name='NE1')
-    he1 = bonded_hydrogens(ne1)[0]
-
-    feature_pos = feature_pos_of_bond(he1, ne1, O_dist)
-    features = {Feature('HDON', feature_pos)}
+    if ne1:
+        hyds = bonded_hydrogens(ne1)
+        if len(hyds) > 0:
+            he1 = hyds[0]
+            feature_pos = feature_pos_of_bond(he1, ne1, O_dist)
+            features.add(Feature('HDON', feature_pos))
 
     return features
 
@@ -526,28 +530,29 @@ def features_from_tryptophan_sidechain(residue: Residue):
     ne1 = residue.atom(name='NE1')
     cg = residue.atom(name='CG')
     ce2 = residue.atom(name='CE2')
-
-    cp = center_of_triangle(ne1, cg, ce2)
-
-    ring_center = center_of_atoms_by_name(residue, {'CG', 'CD1', 'CD2', 'NE1', 'CE2'})
-    if Rp_width >= 0:
-        features |= {
-            Feature('AROM', above(ring_center, cp, Rp_width)),
-            Feature('AROM', below(ring_center, cp, Rp_width)),
-        }
-
     ring_atom_names = {'CE3', 'CZ2', 'CZ3', 'CH2'}
-    ring_center = center_of_atoms_by_name(residue, ring_atom_names)
-    if Rp_width >= 0:
-        features |= {
-            Feature('AROM', above(ring_center, cp, Rp_width)),
-            Feature('AROM', below(ring_center, cp, Rp_width)),
-        }
-    if H_dist >= 0:
-        features |= {
-            Feature('LIPO', above(ring_center, cp, H_dist)),
-            Feature('LIPO', below(ring_center, cp, H_dist)),
-        }
+
+    if ne1 and cg and ce2:
+        cp = center_of_triangle(ne1, cg, ce2)
+
+        ring_center = center_of_atoms_by_name(residue, {'CG', 'CD1', 'CD2', 'NE1', 'CE2'})
+        if Rp_width >= 0:
+            features |= {
+                Feature('AROM', above(ring_center, cp, Rp_width)),
+                Feature('AROM', below(ring_center, cp, Rp_width)),
+            }
+
+        ring_center = center_of_atoms_by_name(residue, ring_atom_names)
+        if Rp_width >= 0:
+            features |= {
+                Feature('AROM', above(ring_center, cp, Rp_width)),
+                Feature('AROM', below(ring_center, cp, Rp_width)),
+            }
+        if H_dist >= 0:
+            features |= {
+                Feature('LIPO', above(ring_center, cp, H_dist)),
+                Feature('LIPO', below(ring_center, cp, H_dist)),
+            }
 
     for r in atoms_by_name(residue, ring_atom_names):
         for h in bonded_hydrogens(r):
