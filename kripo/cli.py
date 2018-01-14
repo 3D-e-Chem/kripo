@@ -10,7 +10,7 @@ from kripodb.pharmacophores import PharmacophoresDb
 
 from .fingerprint.threepoint import BIT_INFO
 from .fragment import Fragment
-from .ligand import Ligand, RdkitParseError
+from .ligand import Ligand, RdkitParseError, AtomiumParseError
 from .pharmacophore import from_fragment, NoFeatures
 from .pdb import pdb_from_file, ligands, PdbDumpError, NoLigands
 from .site import chain_of_site
@@ -87,6 +87,9 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
                                        fingerprints_dict)
         except RdkitParseError:
             msg = 'Ligand {0} of {1} was not parseable by RDKit, skipping'.format(ligand.name(), pdb.code())
+            click.secho(msg, bold=True)
+        except AtomiumParseError:
+            msg = 'Ligand {0} of {1} was not parseable by atomium, skipping'.format(ligand.name(), pdb.code())
             click.secho(msg, bold=True)
 
 

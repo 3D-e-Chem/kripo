@@ -13,6 +13,10 @@ class RdkitParseError(ValueError):
     pass
 
 
+class AtomiumParseError(ValueError):
+    pass
+
+
 class Ligand:
     """Ligand of a ligand-protein complex
 
@@ -60,7 +64,10 @@ class Ligand:
             List[Fragment]: Ordered by weight, heaviest first
 
         """
-        block = self.pdb_block()
+        try:
+            block = self.pdb_block()
+        except ValueError as e:
+            raise AtomiumParseError(*e.args)
         reactant = MolFromPDBBlock(block, sanitize=False)
         if not reactant:
             raise RdkitParseError('RDKit unable to read ligand ' + self.name())
