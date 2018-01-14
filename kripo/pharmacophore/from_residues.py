@@ -22,28 +22,32 @@ logger = logging.getLogger('residue2phar')
 
 
 def features_from_backbone_amine(residue: Residue):
-    if O_dist < 0:
-        return set()
+    features = set()
     nitrogen = residue.atom(name='N')
+    if O_dist < 0 or not nitrogen:
+        return features
     try:
         hydrogen = bonded_hydrogens(nitrogen)[0]
         feature_pos = feature_pos_of_bond(hydrogen, nitrogen, O_dist)
-        return {Feature('HDON', feature_pos)}
+        features.add(Feature('HDON', feature_pos))
+        return features
     except IndexError:
         logger.warning('Skipping amine backbone feature as residue {0} has no N-H bond'.format(residue))
-        return set()
+        return features
 
 
 def features_from_backbone_carbonyl(residue):
-    if A_dist < 0:
-        return set()
+    features = set()
     oxygen = residue.atom(name='O')
     carbon = residue.atom(name='C')
+    if A_dist < 0 or not oxygen or not carbon:
+        return features
 
     feature_pos = feature_pos_of_bond(oxygen, carbon, A_dist)
     feature = Feature('HACC', feature_pos)
+    features.add(feature)
 
-    return {feature}
+    return features
 
 
 def features_from_alanine_sidechain(residue):
