@@ -27,13 +27,14 @@ class Pharmacophore:
     def __init__(self, features):
         self.features = features
 
-    def fingerprint(self):
+    def fingerprint(self, fuzzy_factor=1):
         """Fingerprint of pharmacophore
 
         Returns:
             intbitset.intbitset: Fingerprint
+            fuzzy_factor (int): Number of bins below/above actual bin to include in fingerprint
         """
-        return from_pharmacophore(self)
+        return from_pharmacophore(self, fuzzy_factor=fuzzy_factor)
 
     def __repr__(self):
         return 'Pharmacophore({0})'.format(repr(self.features))

@@ -25,7 +25,11 @@ def main():
 @click.argument('fragments', type=click.Path(writable=True, dir_okay=False))
 @click.argument('pharmacophores', type=click.Path(writable=True, dir_okay=False))
 @click.argument('fingerprints', type=click.Path(writable=True, dir_okay=False))
-def generate(pdbs, fragments, pharmacophores, fingerprints):
+@click.option('--fuzzy_factor',
+              type=int,
+              help='Number of bins below/above actual bin to include in fingerprint',
+              default=1)
+def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor):
     """Generate fragments, pharmacophores and fingerprints for given pdb files
 
     * PDBS, Name of file with a PDB filename on each line
@@ -45,7 +49,7 @@ def generate(pdbs, fragments, pharmacophores, fingerprints):
         for pdb_fn in pdbs:
                 pdb_fn = pdb_fn.strip()
                 try:
-                    generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict)
+                    generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor)
                 except PdbDumpError:
                     msg = 'Unable to dump {0}, skipping'.format(pdb_fn)
                     click.secho(msg, bold=True)
@@ -62,7 +66,11 @@ def pharmacophores_group():
 @pharmacophores_group.command(name='fingerprints')
 @click.argument('pharmacophores', type=click.Path(dir_okay=False))
 @click.argument('fingerprints', type=click.Path(dir_okay=False, writable=True))
-def pharmacophore2fingerprints(pharmacophores, fingerprints):
+@click.option('--fuzzy_factor',
+              type=int,
+              help='Number of bins below/above actual bin to include in fingerprint',
+              default=1)
+def pharmacophore2fingerprints(pharmacophores, fingerprints, fuzzy_factor):
     """Generate fingerprints from pharmacophores
 
     * PHARMACOPHORES, Pharmacophores input data file
@@ -76,5 +84,5 @@ def pharmacophore2fingerprints(pharmacophores, fingerprints):
         for frag_id, points in pharmacophores_db:
             features = [Feature(p[0], (p[1], p[2], p[3])) for p in points]
             pharmacophore = Pharmacophore(features)
-            fingerprint = from_pharmacophore(pharmacophore)
+            fingerprint = from_pharmacophore(pharmacophore, fuzzy_factor=fuzzy_factor)
             fingerprints_dict[frag_id] = fingerprint

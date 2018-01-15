@@ -1,5 +1,5 @@
 from intbitset import intbitset
-from typing import List
+from typing import List, Generator, Tuple
 
 import pkg_resources
 
@@ -50,6 +50,35 @@ def calculate_distance_matrix(ordered_features) -> List[List[float]]:
         matrix.append(row)
 
     return matrix
+
+
+def fuzzy_offsets(fuzzy_factor: int=1) -> Generator[Tuple[int, int, int], None, None]:
+    """Generator for the fuzzy offsets
+
+    Args:
+        fuzzy_factor: The amount of fuzz to add. Special values:
+
+        * -1, Offsets used by kripo v1
+        * -2, Fuzz in one axis at a time
+
+    Yields:
+        The offsets as x, y, z coordinates
+    """
+    if fuzzy_factor >= 0:
+        for i in range((0 - fuzzy_factor), fuzzy_factor + 1):
+            for j in range((0 - fuzzy_factor), fuzzy_factor + 1):
+                for k in range((0 - fuzzy_factor), fuzzy_factor + 1):
+                    yield i, j, k
+    elif fuzzy_factor == -1:
+        theset = [(1, 2, 1), (1, 1, -1), (1, -1, -1), (1, 0, -1), (0, -1, -1), (-1, -1, -1), (1, 2, 0)]
+        for i, j, k in theset:
+            yield i, j, k
+    elif fuzzy_factor == -2:
+        theset = [(0, 0, 0), (-1, 0, 0), (1, 0, 0), (0, -1, 0), (0, 1, 0), (0, 0, -1), (0, 0, 1)]
+        for i, j, k in theset:
+            yield i, j, k
+    else:
+        raise ValueError('Invalid fuzzy_factor')
 
 
 def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
@@ -120,36 +149,34 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
                 bit_index = BIT_INFO[bit_info]
                 bits.add(bit_index)
 
-                for i in range((0 - fuzzy_factor), fuzzy_factor + 1):
-                    for j in range((0 - fuzzy_factor), fuzzy_factor + 1):
-                        for k in range((0 - fuzzy_factor), fuzzy_factor + 1):
-                            # test if is bit outside bins
-                            bin_i = distances[0]['bin'] + i
-                            bin_j = distances[1]['bin'] + j
-                            bin_k = distances[2]['bin'] + k
-                            if nr_bins <= bin_i or bin_i < 0 or \
-                                    nr_bins <= bin_j or bin_j < 0 or \
-                                    nr_bins <= bin_k or bin_k < 0:
-                                continue
+                for i, j, k in fuzzy_offsets(fuzzy_factor):
+                    # test if is bit outside bins
+                    bin_i = distances[0]['bin'] + i
+                    bin_j = distances[1]['bin'] + j
+                    bin_k = distances[2]['bin'] + k
+                    if nr_bins <= bin_i or bin_i < 0 or \
+                            nr_bins <= bin_j or bin_j < 0 or \
+                            nr_bins <= bin_k or bin_k < 0:
+                        continue
 
-                            fdistances = [{
-                                'id': distances[0]['id'],
-                                'bin': bin_i,
-                            }, {
-                                'id': distances[1]['id'],
-                                'bin': bin_j,
-                            }, {
-                                'id': distances[2]['id'],
-                                'bin': bin_k,
-                            }]
+                    fdistances = [{
+                        'id': distances[0]['id'],
+                        'bin': bin_i,
+                    }, {
+                        'id': distances[1]['id'],
+                        'bin': bin_j,
+                    }, {
+                        'id': distances[2]['id'],
+                        'bin': bin_k,
+                    }]
 
-                            fdistances.sort(key=lambda d: (d['bin'], ord(d['id'])))
+                    fdistances.sort(key=lambda d: (d['bin'], ord(d['id'])))
 
-                            bit_info = fdistances[0]['id'] + fdistances[1]['id'] + fdistances[2]['id']
-                            bit_info += chr(fdistances[0]['bin'] + 97)
-                            bit_info += chr(fdistances[1]['bin'] + 97)
-                            bit_info += chr(fdistances[2]['bin'] + 97)
-                            bit_index = BIT_INFO[bit_info]
-                            bits.add(bit_index)
+                    bit_info = fdistances[0]['id'] + fdistances[1]['id'] + fdistances[2]['id']
+                    bit_info += chr(fdistances[0]['bin'] + 97)
+                    bit_info += chr(fdistances[1]['bin'] + 97)
+                    bit_info += chr(fdistances[2]['bin'] + 97)
+                    bit_index = BIT_INFO[bit_info]
+                    bits.add(bit_index)
 
     return intbitset(bits)
