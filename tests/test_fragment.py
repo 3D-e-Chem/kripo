@@ -14,18 +14,15 @@ def test_atom_names__when_fragment_is_whole_ligand(ligand_3heg_bax: Ligand, frag
     names = fragment1_3heg_bax.atom_names()
 
     expected_names = {a.name() for a in ligand_3heg_bax.molecule.atoms()}
-    expected_names.remove('H')
     assert len(names) > 0
     assert set(names) == expected_names
 
 
 def test_atom_names__when_fragment_is_part_ofligand(ligand_3heg_bax: Ligand, fragment2_3heg_bax: Fragment):
-    names = fragment2_3heg_bax.atom_names()
+    names = set(fragment2_3heg_bax.atom_names())
 
     expected_names = {a.name() for a in ligand_3heg_bax.molecule.atoms()}
-    expected_names.remove('H')
-    assert 0 < len(names) < len(expected_names)
-    assert expected_names.issuperset(names)
+    assert names.issubset(expected_names)
 
 
 def seq_nrs_of_site(site):
@@ -36,7 +33,7 @@ def test_site__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
     site = fragment2_3heg_bax.site()
 
     site_ligand = site.ligand()
-    assert len(site_ligand.atoms()) == 39
+    assert len(site_ligand.atoms()) == 43
     assert site_ligand.name() == 'BAX'
     seq_nrs = seq_nrs_of_site(site)
     expected = {
@@ -44,6 +41,7 @@ def test_site__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
         35,
         36,
         38,
+        40,
         51,
         53,
         55,
@@ -61,6 +59,7 @@ def test_site__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
         108,
         109,
         110,
+        111,
         138,
         140,
         141,
@@ -148,14 +147,14 @@ def test_nr_r_groups(fragment2_3heg_bax: Fragment):
 def test_hash_code__when_fragment_is_ligand(fragment1_3heg_bax: Fragment):
     hash_code = fragment1_3heg_bax.hash_code()
 
-    expected_hash_code = '75add68f789c24266bce8e76d474acee'
+    expected_hash_code = 'd9d9b4f739ee20d01265e4beaf585cb2'
     assert hash_code == expected_hash_code
 
 
 def test_hash_code__when_fragment_is_not_ligand(fragment2_3heg_bax: Fragment):
     hash_code = fragment2_3heg_bax.hash_code()
 
-    expected_hash_code = 'cf6e9dedd21a2f6597e898664ec51977'
+    expected_hash_code = 'b4c7f443f1488af226fbde865b99876e'
     assert hash_code == expected_hash_code
 
 

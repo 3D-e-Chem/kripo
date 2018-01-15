@@ -42,6 +42,10 @@ def test_from_fragment__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
         Feature('LIPO', [-0.7636, 3.524, 28.1]),
         Feature('LIPO', [3.063, 1.939, 17.2]),
         Feature('LIPO', [5.668, 2.359, 25.82]),
+        Feature('LIPO', [1.213, -0.4437, 14.56]),
+        Feature('LIPO', [5.396, -3.238, 15.71]),
+        Feature('HACC', [2.973, -3.443, 13.16]),
+        Feature('LIPO', [5.585, -0.8829, 10.59])
     }
 
     assert pharmacophore.features == expected_features
