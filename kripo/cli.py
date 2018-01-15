@@ -7,8 +7,9 @@ import click
 from kripodb.db import FingerprintsDb, FragmentsDb
 from kripodb.pharmacophores import PharmacophoresDb
 
+from .pharmacophore import Feature, Pharmacophore
 from .generator import generate_from_pdb
-from .fingerprint.threepoint import BIT_INFO
+from .fingerprint.threepoint import BIT_INFO, from_pharmacophore
 from .pdb import PdbDumpError, NoLigands
 
 
@@ -53,3 +54,27 @@ def generate(pdbs, fragments, pharmacophores, fingerprints):
                     click.secho(msg, bold=True)
 
 
+@main.group(name='pharmacophores')
+def pharmacophores_group():
+    pass
+
+
+@pharmacophores_group.command(name='fingerprints')
+@click.argument('pharmacophores', type=click.Path(dir_okay=False))
+@click.argument('fingerprints', type=click.Path(dir_okay=False, writable=True))
+def pharmacophore2fingerprints(pharmacophores, fingerprints):
+    """Generate fingerprints from pharmacophores
+
+    * PHARMACOPHORES, Pharmacophores input data file
+
+    * FINGERPRINTS, Fingerprints output data file
+
+    """
+    with PharmacophoresDb(pharmacophores, mode='r') as pharmacophores_db, \
+            FingerprintsDb(fingerprints) as fingerprints_db:
+        fingerprints_dict = fingerprints_db.as_dict(len(BIT_INFO))
+        for frag_id, points in pharmacophores_db:
+            features = [Feature(p[0], (p[1], p[2], p[3])) for p in points]
+            pharmacophore = Pharmacophore(features)
+            fingerprint = from_pharmacophore(pharmacophore)
+            fingerprints_dict[frag_id] = fingerprint
