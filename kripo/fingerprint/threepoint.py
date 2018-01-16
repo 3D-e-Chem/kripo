@@ -134,52 +134,52 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
     for a in range(nr_features - 2):
         for b in range(a + 1, nr_features - 1):
             for c in range(b + 1, nr_features):
-                distances = [{
-                    'id': FEATURE2BIT[ordered_features[c].kind],
-                    'bin': bin_distance(dist_matrix[a][b], BINS)
-                }, {
-                    'id': FEATURE2BIT[ordered_features[b].kind],
-                    'bin': bin_distance(dist_matrix[a][c], BINS)
-                }, {
-                    'id': FEATURE2BIT[ordered_features[a].kind],
-                    'bin': bin_distance(dist_matrix[b][c], BINS)
-                }]
-                distances.sort(key=lambda d: (d['bin'], ord(d['id'])))
+                distances = [(
+                    bin_distance(dist_matrix[a][b], BINS),
+                    FEATURE2BIT[ordered_features[c].kind],
+                ), (
+                    bin_distance(dist_matrix[a][c], BINS),
+                    FEATURE2BIT[ordered_features[b].kind],
+                ), (
+                    bin_distance(dist_matrix[b][c], BINS),
+                    FEATURE2BIT[ordered_features[a].kind],
+                )]
+                distances.sort()
 
-                bit_info = distances[0]['id'] + distances[1]['id'] + distances[2]['id']
-                bit_info += chr(distances[0]['bin'] + 97)
-                bit_info += chr(distances[1]['bin'] + 97)
-                bit_info += chr(distances[2]['bin'] + 97)
+                bit_info = distances[0][1] + distances[1][1] + distances[2][1]
+                bit_info += chr(distances[0][0] + 97)
+                bit_info += chr(distances[1][0] + 97)
+                bit_info += chr(distances[2][0] + 97)
                 bit_index = BIT_INFO[bit_info]
                 bits.add(bit_index)
 
                 for i, j, k in offsets:
                     # test if is bit outside bins
-                    bin_i = distances[0]['bin'] + i
-                    bin_j = distances[1]['bin'] + j
-                    bin_k = distances[2]['bin'] + k
+                    bin_i = distances[0][0] + i
+                    bin_j = distances[1][0] + j
+                    bin_k = distances[2][0] + k
                     if nr_bins <= bin_i or bin_i < 0 or \
                             nr_bins <= bin_j or bin_j < 0 or \
                             nr_bins <= bin_k or bin_k < 0:
                         continue
 
-                    fdistances = [{
-                        'id': distances[0]['id'],
-                        'bin': bin_i,
-                    }, {
-                        'id': distances[1]['id'],
-                        'bin': bin_j,
-                    }, {
-                        'id': distances[2]['id'],
-                        'bin': bin_k,
-                    }]
+                    fdistances = [(
+                        bin_i,
+                        distances[0][1],
+                    ), (
+                        bin_j,
+                        distances[1][1],
+                    ), (
+                        bin_k,
+                        distances[2][1],
+                    )]
 
-                    fdistances.sort(key=lambda d: (d['bin'], ord(d['id'])))
+                    fdistances.sort()
 
-                    bit_info = fdistances[0]['id'] + fdistances[1]['id'] + fdistances[2]['id']
-                    bit_info += chr(fdistances[0]['bin'] + 97)
-                    bit_info += chr(fdistances[1]['bin'] + 97)
-                    bit_info += chr(fdistances[2]['bin'] + 97)
+                    bit_info = fdistances[0][1] + fdistances[1][1] + fdistances[2][1]
+                    bit_info += chr(fdistances[0][0] + 97)
+                    bit_info += chr(fdistances[1][0] + 97)
+                    bit_info += chr(fdistances[2][0] + 97)
                     bit_index = BIT_INFO[bit_info]
                     bits.add(bit_index)
 
