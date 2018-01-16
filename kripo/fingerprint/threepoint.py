@@ -127,6 +127,7 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
                     bit_index = BIT_INFO[bit_info]
                     bits.add(bit_index)
 
+    offsets = list(fuzzy_offsets(fuzzy_factor))
     for a in range(nr_features - 2):
         for b in range(a + 1, nr_features - 1):
             for c in range(b + 1, nr_features):
@@ -149,7 +150,7 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
                 bit_index = BIT_INFO[bit_info]
                 bits.add(bit_index)
 
-                for i, j, k in fuzzy_offsets(fuzzy_factor):
+                for i, j, k in offsets:
                     # test if is bit outside bins
                     bin_i = distances[0]['bin'] + i
                     bin_j = distances[1]['bin'] + j
