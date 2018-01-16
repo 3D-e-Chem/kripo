@@ -73,7 +73,7 @@ def pharmacophores_group():
 def pharmacophore2fingerprints(pharmacophores, fingerprints, fuzzy_factor):
     """Generate fingerprints from pharmacophores
 
-    * PHARMACOPHORES, Pharmacophores input data file
+    * PHARMACOPHORES, Pharmacophores input data file (*.h5)
 
     * FINGERPRINTS, Fingerprints output data file
 
