@@ -107,6 +107,9 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
             bits.add(bit_index)
 
     if subs:
+        pair_fuzzy_factor = fuzzy_factor
+        if pair_fuzzy_factor < 0:
+            pair_fuzzy_factor = 1
         for a in range(nr_features - 1):
             for b in range(a + 1, nr_features):
                 distance = dist_matrix[a][b]
@@ -119,7 +122,7 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
                 bit_index = BIT_INFO[bit_info]
                 bits.add(bit_index)
 
-                for i in range((0 - fuzzy_factor), fuzzy_factor + 1):
+                for i in range((0 - pair_fuzzy_factor), pair_fuzzy_factor + 1):
                     if nr_bins < bin_id + i or bin_id + i < 0:
                         continue
 
