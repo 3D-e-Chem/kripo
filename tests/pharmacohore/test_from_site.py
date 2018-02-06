@@ -161,6 +161,27 @@ ATOM         HG  CYS A 162      -5.721  -6.918  16.387  1.00 28.88           H
     id='CYS'
 )
 
+CYS_TRUNCATED = pytest.param(
+    # Regression for CYS220 of 2ZG0, where S has no proton attached
+    """ATOM   2020  N   CYS H 220       8.230 -15.806  23.838  1.00 24.28           N  
+ATOM   2021  CA  CYS H 220       7.517 -14.534  23.758  1.00 20.23           C  
+ATOM   2022  C   CYS H 220       6.238 -14.685  24.579  1.00 25.92           C  
+ATOM   2023  O   CYS H 220       5.504 -15.657  24.378  1.00 24.17           O  
+ATOM   2024  CB  CYS H 220       7.264 -14.122  22.306  1.00 18.59           C  
+ATOM   2025  SG  CYS H 220       8.688 -14.134  21.195  1.00  23.1           S  
+ATOM         HB2 CYS H 220       6.498 -14.792  21.888  1.00 18.59           H  
+ATOM         HB3 CYS H 220       6.839 -13.108  22.307  1.00 18.59           H  
+ATOM         H   CYS H 220       7.643 -16.611  23.751  1.00 24.28           H  
+ATOM         HA  CYS H 220       8.119 -13.714  24.175  1.00 20.23           H  
+""", {
+        Feature('HACC', [5.028, -16.29, 24.25]),
+        Feature('HDON', [7.526, -16.77, 23.73]),
+        Feature('LIPO', [5.941, -15.28, 21.58]),
+        Feature('LIPO', [6.53, -12.37, 22.31])
+    },
+    id='CYS_TRUNCATED'
+)
+
 HIS = pytest.param(
     """ATOM   1149  N   HIS A 148      -9.738   5.129  28.109  1.00 26.72           N  
 ATOM   1150  CA  HIS A 148      -8.894   5.168  26.917  1.00  25.7           C  
@@ -650,6 +671,7 @@ residues = [
     ASN,
     ASP,
     CYS,
+    CYS_TRUNCATED,
     HIS,
     GLU,
     GLN,
