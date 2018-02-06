@@ -95,7 +95,7 @@ def from_site(site: Site):
         'TYR': features_from_tyrosine,
         'VAL': features_from_valine,
     }
-    for residue in site.residues():
+    for residue in sorted(site.residues(), key=lambda r: r.residue_id()):
         try:
             features |= mappers[residue.name()](residue)
         except KeyError:

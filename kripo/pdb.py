@@ -48,8 +48,10 @@ MAX_CONTACT_DISTANCE = 2.5
 class NoLigands(ValueError):
     pass
 
+
 class PdbDumpError(TypeError):
     pass
+
 
 def ligands(pdb: Pdb) -> List[Ligand]:
     """Ligands of a pdb
