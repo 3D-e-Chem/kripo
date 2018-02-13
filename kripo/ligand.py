@@ -1,12 +1,15 @@
+import logging
 from typing import List
 
 from atomium.structures.chains import Site
 from atomium.structures.molecules import Molecule
-from rdkit.Chem import MolFromPDBBlock, SanitizeMol
+from rdkit.Chem import MolFromPDBBlock, SanitizeMol, RWMol, Mol
 from rdkit.Chem.Descriptors import MolWt
 
 from .reactor import Reactor
 from .fragment import Fragment, BINDING_SITE_RADIUS
+
+logger = logging.getLogger()
 
 
 class RdkitParseError(ValueError):
@@ -15,6 +18,35 @@ class RdkitParseError(ValueError):
 
 class AtomiumParseError(ValueError):
     pass
+
+
+def remove_nonpdb_bonds(rdkit_mol: Mol, atomium_mol: Molecule) -> Mol:
+    """Checks if bonds in RDKit molecule are also present in PDB. If absent then the bond is removed.
+
+    Args:
+        rdkit_mol: RDKit molecule to prune
+        atomium_mol: Reference PDB molecule
+
+    Returns:
+        RDKit molecule which has been pruned
+    """
+    rwmol = RWMol(rdkit_mol)
+    for a in rwmol.GetAtoms():
+        a_idx = a.GetIdx()
+        a_serial = a.GetPDBResidueInfo().GetSerialNumber()
+        a_atom = atomium_mol.atom(a_serial)
+        if a.GetExplicitValence() != len(a_atom.bonds()):
+            for bond in a.GetBonds():
+                o = bond.GetOtherAtom(a)
+                o_idx = o.GetIdx()
+                o_serial = o.GetPDBResidueInfo().GetSerialNumber()
+                o_atom = atomium_mol.atom(o_serial)
+                if not a_atom.bond_with(o_atom):
+                    rwmol.RemoveBond(a_idx, o_idx)
+                    logger.info("Removing bond %s:%s - %s:%s from RDKit molecule as it is not present in PDB",
+                                a_serial, a.GetSymbol(),
+                                o_serial, o.GetSymbol())
+    return rwmol.GetMol()
 
 
 class Ligand:
@@ -69,6 +101,7 @@ class Ligand:
         except ValueError as e:
             raise AtomiumParseError(*e.args)
         reactant = MolFromPDBBlock(block, sanitize=False)
+        reactant = remove_nonpdb_bonds(reactant, self.molecule)
         if not reactant:
             raise RdkitParseError('RDKit unable to read ligand ' + self.name())
         try:
