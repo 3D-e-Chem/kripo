@@ -9,7 +9,7 @@ from kripo.pharmacophore import from_fragment, NoFeatures
 from kripo.site import chain_of_site
 
 
-def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor):
+def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor, fragmentation=True):
     """Generate pharmacophore fingerprints from a pdb and store them
 
     Args:
@@ -18,6 +18,8 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
         pharmacophore_points (kripodb.pharmacophores.PharmacophorePointsTable): Pharmacophores database
         fingerprints_dict (kripodb.db.IntbitsetDict): Fingerprints db dictionary
         fuzzy_factor (int): The fuzzy factor
+        fragmentation (bool): When true the ligand is fragmented and the whole ligand
+            and it's fragments produce pharmacophores. When false only the whole ligand produced a single pharmacophore.
 
     """
     click.echo('Parsing {0}'.format(pdb_fn))
@@ -29,7 +31,11 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
             click.secho(msg, bold=True)
             continue
         try:
-            for frag_nr, fragment in enumerate(ligand.fragments(), 1):
+            if fragmentation:
+                fragments = ligand.fragments()
+            else:
+                fragments = [ligand.as_fragment()]
+            for frag_nr, fragment in enumerate(fragments, 1):
                 click.echo('Fragment {0}'.format(frag_nr))
                 generate_from_fragment(pdb,
                                        ligand,
@@ -47,7 +53,14 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
             click.secho(msg, bold=True)
 
 
-def generate_from_fragment(pdb, ligand, fragment, frag_nr, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor):
+def generate_from_fragment(pdb,
+                           ligand,
+                           fragment,
+                           frag_nr,
+                           fragments_db,
+                           pharmacophore_points,
+                           fingerprints_dict,
+                           fuzzy_factor):
     try:
         frag_id = build_frag_id(pdb, ligand, frag_nr)
         fragment.name = frag_id
@@ -65,7 +78,9 @@ def generate_from_fragment(pdb, ligand, fragment, frag_nr, fragments_db, pharmac
               'contains no pharmacophore features, skipping'.format(frag_nr, ligand.id(), pdb.code())
         click.secho(msg, bold=True)
     except IntegrityError:
-        msg = 'Fragment {0} of ligand {1} of pdb {2} already present, skipping'.format(frag_nr, ligand.name(), pdb.code())
+        msg = 'Fragment {0} of ligand {1} of pdb {2} already present, skipping'.format(frag_nr,
+                                                                                       ligand.name(),
+                                                                                       pdb.code())
         click.secho(msg, bold=True)
 
 

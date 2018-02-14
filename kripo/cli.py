@@ -29,7 +29,8 @@ def main():
               type=int,
               help='Number of bins below/above actual bin to include in fingerprint',
               default=1)
-def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor):
+@click.option('--fragmentation/--no-fragmentation', help='Fragment ligands', default=True)
+def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor, fragmentation):
     """Generate fragments, pharmacophores and fingerprints for given pdb files
 
     * PDBS, Name of file with a PDB filename on each line
@@ -49,7 +50,7 @@ def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor):
         for pdb_fn in pdbs:
                 pdb_fn = pdb_fn.strip()
                 try:
-                    generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor)
+                    generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor, fragmentation)
                 except PdbDumpError:
                     msg = 'Unable to dump {0}, skipping'.format(pdb_fn)
                     click.secho(msg, bold=True)
