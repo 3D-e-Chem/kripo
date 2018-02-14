@@ -101,9 +101,9 @@ class Ligand:
         except ValueError as e:
             raise AtomiumParseError(*e.args)
         reactant = MolFromPDBBlock(block, sanitize=False)
-        reactant = remove_nonpdb_bonds(reactant, self.molecule)
         if not reactant:
             raise RdkitParseError('RDKit unable to read ligand ' + self.name())
+        reactant = remove_nonpdb_bonds(reactant, self.molecule)
         try:
             SanitizeMol(reactant)
         except ValueError as e:

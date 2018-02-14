@@ -103,8 +103,8 @@ def pdb_from_atomium_pdb(pdb: Pdb, hydrogenate=True, clean=True) -> Pdb:
     if hydrogenate:
         try:
             pdb = protonate(pdb, het=True)
-        except TypeError:
-            raise PdbDumpError(pdb)
+        except TypeError as e:
+            raise PdbDumpError(pdb) from e
     if clean:
         remove_non_contacting_molecules(pdb)
     return pdb
