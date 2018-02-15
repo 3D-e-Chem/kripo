@@ -1,3 +1,5 @@
+from typing import List, Generator, Tuple
+
 
 def calc_bins(fp_width, fp_multiplier, max_bins, max_distance):
     """Calculates distance bins
@@ -43,3 +45,56 @@ def bin_distance(distance, bins):
             bin_id = i
             break
     return bin_id
+
+
+def calculate_distance_matrix(ordered_features) -> List[List[float]]:
+    """Calculate distances between list of features
+
+    Args:
+        ordered_features (List[Feature]):
+
+    Returns:
+        Where row/column list indices are same a ordered_features indices and
+            value is the distance between the row and column feature
+    """
+    n = len(ordered_features)
+    matrix = []
+    for i in range(n):
+        row = []
+        for j in range(n):
+            dist = ordered_features[i].distance(ordered_features[j])
+            row.append(dist)
+        matrix.append(row)
+
+    return matrix
+
+
+def fuzzy_offsets(factor: int=1, shape='all') -> Generator[Tuple[int, int, int], None, None]:
+    """Generator for the fuzzy offsets
+
+    Args:
+        factor: The amount of fuzz to add.
+        shape: Shape of offsets
+
+            * all,
+            * one,
+            * v1,
+
+    Yields:
+        The offsets as x, y, z coordinates
+    """
+    if factor >= 0:
+        for i in range((0 - factor), factor + 1):
+            for j in range((0 - factor), factor + 1):
+                for k in range((0 - factor), factor + 1):
+                    yield i, j, k
+    elif factor == -1:
+        theset = [(1, 2, 1), (1, 1, -1), (1, -1, -1), (1, 0, -1), (0, -1, -1), (-1, -1, -1), (1, 2, 0)]
+        for i, j, k in theset:
+            yield i, j, k
+    elif factor == -2:
+        theset = [(0, 0, 0), (-1, 0, 0), (1, 0, 0), (0, -1, 0), (0, 1, 0), (0, 0, -1), (0, 0, 1)]
+        for i, j, k in theset:
+            yield i, j, k
+    else:
+        raise ValueError('Invalid fuzzy_factor')

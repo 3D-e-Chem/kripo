@@ -1,10 +1,9 @@
-from intbitset import intbitset
-from typing import List, Generator, Tuple
-
 import pkg_resources
 
+from intbitset import intbitset
+
 from .bitinfo import load_bitinfo
-from .utils import calc_bins, bin_distance
+from .utils import calc_bins, bin_distance, calculate_distance_matrix, fuzzy_offsets
 
 """Constants and methods for 3 point pharmacophore fingerprints"""
 
@@ -28,57 +27,6 @@ FEATURE2BIT = {
     'HACC': 'A',
     'AROM': 'R'
 }
-
-
-def calculate_distance_matrix(ordered_features) -> List[List[float]]:
-    """Calculate distances between list of features
-
-    Args:
-        ordered_features (List[Feature]):
-
-    Returns:
-        Where row/column list indices are same a ordered_features indices and
-            value is the distance between the row and column feature
-    """
-    n = len(ordered_features)
-    matrix = []
-    for i in range(n):
-        row = []
-        for j in range(n):
-            dist = ordered_features[i].distance(ordered_features[j])
-            row.append(dist)
-        matrix.append(row)
-
-    return matrix
-
-
-def fuzzy_offsets(fuzzy_factor: int=1) -> Generator[Tuple[int, int, int], None, None]:
-    """Generator for the fuzzy offsets
-
-    Args:
-        fuzzy_factor: The amount of fuzz to add. Special values:
-
-        * -1, Offsets used by kripo v1
-        * -2, Fuzz in one axis at a time
-
-    Yields:
-        The offsets as x, y, z coordinates
-    """
-    if fuzzy_factor >= 0:
-        for i in range((0 - fuzzy_factor), fuzzy_factor + 1):
-            for j in range((0 - fuzzy_factor), fuzzy_factor + 1):
-                for k in range((0 - fuzzy_factor), fuzzy_factor + 1):
-                    yield i, j, k
-    elif fuzzy_factor == -1:
-        theset = [(1, 2, 1), (1, 1, -1), (1, -1, -1), (1, 0, -1), (0, -1, -1), (-1, -1, -1), (1, 2, 0)]
-        for i, j, k in theset:
-            yield i, j, k
-    elif fuzzy_factor == -2:
-        theset = [(0, 0, 0), (-1, 0, 0), (1, 0, 0), (0, -1, 0), (0, 1, 0), (0, 0, -1), (0, 0, 1)]
-        for i, j, k in theset:
-            yield i, j, k
-    else:
-        raise ValueError('Invalid fuzzy_factor')
 
 
 def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:

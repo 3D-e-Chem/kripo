@@ -28,8 +28,17 @@ def main():
 @click.option('--fuzzy_factor',
               type=int,
               help='Number of bins below/above actual bin to include in fingerprint',
-              default=1)
-@click.option('--fragmentation/--no-fragmentation', help='Fragment ligands', default=True)
+              default=1,
+              show_default=True)
+@click.option('--fuzzy_shape',
+              type=click.Choice(('all', 'one', 'v1')),
+              help='Shape of bins around actual bin',
+              default='all',
+              show_default=True)
+@click.option('--fragmentation/--no-fragmentation',
+              help='Fragment ligands',
+              default=True,
+              show_default=True)
 def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor, fragmentation):
     """Generate fragments, pharmacophores and fingerprints for given pdb files
 
@@ -70,7 +79,8 @@ def pharmacophores_group():
 @click.option('--fuzzy_factor',
               type=int,
               help='Number of bins below/above actual bin to include in fingerprint',
-              default=1)
+              default=1,
+              show_default=True)
 def pharmacophore2fingerprints(pharmacophores, fingerprints, fuzzy_factor):
     """Generate fingerprints from pharmacophores
 
