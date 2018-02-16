@@ -96,19 +96,7 @@ class Ligand:
             List[Fragment]: Ordered by weight, heaviest first
 
         """
-        try:
-            block = self.pdb_block()
-        except ValueError as e:
-            raise AtomiumParseError(*e.args)
-        reactant = MolFromPDBBlock(block, sanitize=False)
-        if not reactant:
-            raise RdkitParseError('RDKit unable to read ligand ' + self.name())
-        reactant = remove_nonpdb_bonds(reactant, self.molecule)
-        try:
-            SanitizeMol(reactant)
-        except ValueError as e:
-            # TODO try to fix reactant so it passes SanitizeMol
-            raise RdkitParseError(*e.args)
+        reactant = self.rdkit_mol()
         mols = [reactant]
         products = Reactor().react(reactant)
         mols.extend(products)
@@ -139,3 +127,24 @@ class Ligand:
             int: sequence number
         """
         return int(self.id()[1:])
+
+    def rdkit_mol(self) -> Mol:
+        """Return RDKit molecule of Atomium molecule
+        """
+        try:
+            block = self.pdb_block()
+        except ValueError as e:
+            raise AtomiumParseError(*e.args)
+        mol = MolFromPDBBlock(block, sanitize=False)
+        if not mol:
+            raise RdkitParseError('RDKit unable to read ligand ' + self.name())
+        mol = remove_nonpdb_bonds(mol, self.molecule)
+        try:
+            SanitizeMol(mol)
+        except ValueError as e:
+            # TODO try to fix reactant so it passes SanitizeMol
+            raise RdkitParseError(*e.args)
+        return mol
+
+    def as_fragment(self):
+        return Fragment(self.molecule, self.rdkit_mol())

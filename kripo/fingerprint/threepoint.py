@@ -1,10 +1,9 @@
-from intbitset import intbitset
-from typing import List, Generator, Tuple
-
 import pkg_resources
 
+from intbitset import intbitset
+
 from .bitinfo import load_bitinfo
-from .utils import calc_bins, bin_distance
+from .utils import calc_bins, bin_distance, calculate_distance_matrix, fuzzy_offsets
 
 """Constants and methods for 3 point pharmacophore fingerprints"""
 
@@ -30,64 +29,14 @@ FEATURE2BIT = {
 }
 
 
-def calculate_distance_matrix(ordered_features) -> List[List[float]]:
-    """Calculate distances between list of features
-
-    Args:
-        ordered_features (List[Feature]):
-
-    Returns:
-        Where row/column list indices are same a ordered_features indices and
-            value is the distance between the row and column feature
-    """
-    n = len(ordered_features)
-    matrix = []
-    for i in range(n):
-        row = []
-        for j in range(n):
-            dist = ordered_features[i].distance(ordered_features[j])
-            row.append(dist)
-        matrix.append(row)
-
-    return matrix
-
-
-def fuzzy_offsets(fuzzy_factor: int=1) -> Generator[Tuple[int, int, int], None, None]:
-    """Generator for the fuzzy offsets
-
-    Args:
-        fuzzy_factor: The amount of fuzz to add. Special values:
-
-        * -1, Offsets used by kripo v1
-        * -2, Fuzz in one axis at a time
-
-    Yields:
-        The offsets as x, y, z coordinates
-    """
-    if fuzzy_factor >= 0:
-        for i in range((0 - fuzzy_factor), fuzzy_factor + 1):
-            for j in range((0 - fuzzy_factor), fuzzy_factor + 1):
-                for k in range((0 - fuzzy_factor), fuzzy_factor + 1):
-                    yield i, j, k
-    elif fuzzy_factor == -1:
-        theset = [(1, 2, 1), (1, 1, -1), (1, -1, -1), (1, 0, -1), (0, -1, -1), (-1, -1, -1), (1, 2, 0)]
-        for i, j, k in theset:
-            yield i, j, k
-    elif fuzzy_factor == -2:
-        theset = [(0, 0, 0), (-1, 0, 0), (1, 0, 0), (0, -1, 0), (0, 1, 0), (0, 0, -1), (0, 0, 1)]
-        for i, j, k in theset:
-            yield i, j, k
-    else:
-        raise ValueError('Invalid fuzzy_factor')
-
-
-def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
+def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1, fuzzy_shape='all') -> intbitset:
     """Build a fingerprint from a pharmacophore
 
     Args:
         pharmacophore (Pharmacophore): The pharmacophore
         subs (bool): Include bits for 1 point and 2 points
         fuzzy_factor (int): Number of bins below/above actual bin to include in fingerprint
+        fuzzy_shape (str): Shape of fuzzying
 
     Returns:
         Fingerprint
@@ -130,7 +79,7 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
                     bit_index = BIT_INFO[bit_info]
                     bits.add(bit_index)
 
-    offsets = list(fuzzy_offsets(fuzzy_factor))
+    offsets = list(fuzzy_offsets(fuzzy_factor, fuzzy_shape))
     for a in range(nr_features - 2):
         for b in range(a + 1, nr_features - 1):
             for c in range(b + 1, nr_features):
