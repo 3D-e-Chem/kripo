@@ -14,7 +14,6 @@ from kripodb.pharmacophores import as_phar
 
 def prep_site(block, ligand):
     model = pdb_dict_to_pdb(pdb_string_to_pdb_dict(block)).model()
-    model.add_molecule(ligand)
     return Site(model, ligand=ligand)
 
 
