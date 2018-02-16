@@ -9,7 +9,7 @@ from kripo.pharmacophore import from_fragment, NoFeatures
 from kripo.site import chain_of_site
 
 
-def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor, fragmentation=True):
+def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor, fuzzy_shape, fragmentation=True):
     """Generate pharmacophore fingerprints from a pdb and store them
 
     Args:
@@ -18,6 +18,7 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
         pharmacophore_points (kripodb.pharmacophores.PharmacophorePointsTable): Pharmacophores database
         fingerprints_dict (kripodb.db.IntbitsetDict): Fingerprints db dictionary
         fuzzy_factor (int): The fuzzy factor
+        fuzzy_shape (str): The fuzzy shape
         fragmentation (bool): When true the ligand is fragmented and the whole ligand
             and it's fragments produce pharmacophores. When false only the whole ligand produced a single pharmacophore.
 
@@ -44,7 +45,8 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
                                        fragments_db,
                                        pharmacophore_points,
                                        fingerprints_dict,
-                                       fuzzy_factor)
+                                       fuzzy_factor,
+                                       fuzzy_shape)
         except RdkitParseError:
             msg = 'Ligand {0} of {1} was not parseable by RDKit, skipping'.format(ligand.name(), pdb.code())
             click.secho(msg, bold=True)
@@ -60,14 +62,15 @@ def generate_from_fragment(pdb,
                            fragments_db,
                            pharmacophore_points,
                            fingerprints_dict,
-                           fuzzy_factor):
+                           fuzzy_factor,
+                           fuzzy_shape):
     try:
         frag_id = build_frag_id(pdb, ligand, frag_nr)
         fragment.name = frag_id
         click.echo('Generating pharmacophore fingerprint for {0}'.format(frag_id))
 
         pharmacophore = from_fragment(fragment)
-        fingerprint = pharmacophore.fingerprint(fuzzy_factor)
+        fingerprint = pharmacophore.fingerprint(fuzzy_factor, fuzzy_shape)
 
         click.echo('Saving fragment/pharmacophore/fingerprint')
         add_fragment2db(pdb, ligand, frag_nr, fragment, fragments_db)

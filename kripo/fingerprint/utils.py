@@ -69,32 +69,46 @@ def calculate_distance_matrix(ordered_features) -> List[List[float]]:
     return matrix
 
 
-def fuzzy_offsets(factor: int=1, shape='all') -> Generator[Tuple[int, int, int], None, None]:
+def fuzzy_offsets(factor: int, shape: str) -> Generator[Tuple[int, int, int], None, None]:
     """Generator for the fuzzy offsets
 
     Args:
         factor: The amount of fuzz to add.
         shape: Shape of offsets
 
-            * all,
-            * one,
-            * v1,
+            * all, applies factor in each dimension
+            * one, applies factor in only one dimension at a time
+            * v1, returns offsets as returned in v1 of kripo
 
     Yields:
         The offsets as x, y, z coordinates
+
+    Raises:
+        ValueError: If factor or shape are incorrect
     """
-    if factor >= 0:
-        for i in range((0 - factor), factor + 1):
-            for j in range((0 - factor), factor + 1):
-                for k in range((0 - factor), factor + 1):
+    if shape == 'all' and factor >= 0:
+        for i in range(-factor, factor + 1):
+            for j in range(-factor, factor + 1):
+                for k in range(-factor, factor + 1):
+                    if i == 0 and j == 0 and k == 0:
+                        continue
                     yield i, j, k
-    elif factor == -1:
-        theset = [(1, 2, 1), (1, 1, -1), (1, -1, -1), (1, 0, -1), (0, -1, -1), (-1, -1, -1), (1, 2, 0)]
-        for i, j, k in theset:
-            yield i, j, k
-    elif factor == -2:
-        theset = [(0, 0, 0), (-1, 0, 0), (1, 0, 0), (0, -1, 0), (0, 1, 0), (0, 0, -1), (0, 0, 1)]
-        for i, j, k in theset:
-            yield i, j, k
+    elif shape == 'v1':
+        for i in range(-factor, factor + 1):
+            for j in range(-factor, factor + 1):
+                for k in range(-factor, factor + 1):
+                    if i == 0 and j == 0 and k == 0:
+                        continue
+                    yield i, j, k
+                    for i in range(3 - 1):
+                        for j in range(i + 1, 3):
+                            pass
+    elif shape == 'one':
+        for z in range(-factor, factor + 1):
+            if z == 0:
+                continue
+            yield 0, 0, z
+            yield 0, z, 0
+            yield z, 0, 0
     else:
-        raise ValueError('Invalid fuzzy_factor')
+        raise ValueError('Invalid fuzzy factor or shape')

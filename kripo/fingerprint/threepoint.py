@@ -29,13 +29,14 @@ FEATURE2BIT = {
 }
 
 
-def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
+def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1, fuzzy_shape='all') -> intbitset:
     """Build a fingerprint from a pharmacophore
 
     Args:
         pharmacophore (Pharmacophore): The pharmacophore
         subs (bool): Include bits for 1 point and 2 points
         fuzzy_factor (int): Number of bins below/above actual bin to include in fingerprint
+        fuzzy_shape (str): Shape of fuzzying
 
     Returns:
         Fingerprint
@@ -78,7 +79,7 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1) -> intbitset:
                     bit_index = BIT_INFO[bit_info]
                     bits.add(bit_index)
 
-    offsets = list(fuzzy_offsets(fuzzy_factor))
+    offsets = list(fuzzy_offsets(fuzzy_factor, fuzzy_shape))
     for a in range(nr_features - 2):
         for b in range(a + 1, nr_features - 1):
             for c in range(b + 1, nr_features):

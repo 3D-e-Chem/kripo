@@ -39,7 +39,7 @@ def main():
               help='Fragment ligands',
               default=True,
               show_default=True)
-def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor, fragmentation):
+def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor, fuzzy_shape, fragmentation):
     """Generate fragments, pharmacophores and fingerprints for given pdb files
 
     * PDBS, Name of file with a PDB filename on each line
@@ -59,7 +59,7 @@ def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor, fragme
         for pdb_fn in pdbs:
                 pdb_fn = pdb_fn.strip()
                 try:
-                    generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor, fragmentation)
+                    generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor, fuzzy_shape, fragmentation)
                 except PdbDumpError:
                     msg = 'Unable to dump {0}, skipping'.format(pdb_fn)
                     click.secho(msg, bold=True)
@@ -81,7 +81,12 @@ def pharmacophores_group():
               help='Number of bins below/above actual bin to include in fingerprint',
               default=1,
               show_default=True)
-def pharmacophore2fingerprints(pharmacophores, fingerprints, fuzzy_factor):
+@click.option('--fuzzy_shape',
+              type=click.Choice(('all', 'one', 'v1')),
+              help='Shape of bins around actual bin',
+              default='all',
+              show_default=True)
+def pharmacophore2fingerprints(pharmacophores, fingerprints, fuzzy_factor, fuzzy_shape):
     """Generate fingerprints from pharmacophores
 
     * PHARMACOPHORES, Pharmacophores input data file (*.h5)
@@ -95,5 +100,5 @@ def pharmacophore2fingerprints(pharmacophores, fingerprints, fuzzy_factor):
         for frag_id, points in pharmacophores_db:
             features = [Feature(p[0], (p[1], p[2], p[3])) for p in points]
             pharmacophore = Pharmacophore(features)
-            fingerprint = from_pharmacophore(pharmacophore, fuzzy_factor=fuzzy_factor)
+            fingerprint = from_pharmacophore(pharmacophore, fuzzy_factor=fuzzy_factor, fuzzy_shape=fuzzy_shape)
             fingerprints_dict[frag_id] = fingerprint
