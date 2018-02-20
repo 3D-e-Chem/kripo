@@ -44,6 +44,10 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1, fuzzy_shape='al
     ordered_features = sorted(list(pharmacophore.features), key=lambda f: FEATURE2BIT[f.kind])
     nr_features = len(ordered_features)
     nr_bins = len(BINS)
+    nr_bins_three_point = nr_bins
+    if fuzzy_shape == 'v1':
+        # v1 offsets fail bounds check, so bin indices outside nr_bins are allowed
+        nr_bins_three_point += fuzzy_factor * 2
 
     dist_matrix = calculate_distance_matrix(ordered_features)
 
@@ -79,7 +83,7 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1, fuzzy_shape='al
                     bit_index = BIT_INFO[bit_info]
                     bits.add(bit_index)
 
-    offsets = list(fuzzy_offsets(fuzzy_factor, fuzzy_shape))
+    offsets = tuple(set(fuzzy_offsets(fuzzy_factor, fuzzy_shape)))
     for a in range(nr_features - 2):
         for b in range(a + 1, nr_features - 1):
             for c in range(b + 1, nr_features):
@@ -107,9 +111,10 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1, fuzzy_shape='al
                     bin_i = distances[0][0] + i
                     bin_j = distances[1][0] + j
                     bin_k = distances[2][0] + k
-                    if nr_bins <= bin_i or bin_i < 0 or \
-                            nr_bins <= bin_j or bin_j < 0 or \
-                            nr_bins <= bin_k or bin_k < 0:
+
+                    if bin_i < 0 or bin_i >= nr_bins_three_point or \
+                            bin_j < 0 or bin_j >= nr_bins_three_point or \
+                            bin_k < 0 or bin_k >= nr_bins_three_point:
                         continue
 
                     fdistances = [(

@@ -1188,6 +1188,87 @@ real_phars = [
                          triple_point_phars +
                          real_phars
                          )
-def test_from_pharmacophore(phar, expected):
+def test_from_pharmacophore_with_defaults(phar, expected):
     fp = from_pharmacophore(phar)
+    assert fp.tolist() == expected.tolist()
+
+
+def test_from_pharmacophore_with_v1_fuzzyshape():
+    phar = Pharmacophore([
+        # first feature is far away from other so the distance is binned outside the normal bin range
+        # , but v1 shape caused those to be included anyway
+        Feature('LIPO', (119.4755, 93.5077, 98.8115)),
+        Feature('LIPO', (104.4201, 94.1307, 93.9420)),
+        Feature('LIPO', (103.5509, 96.8359, 92.5697)),
+    ])
+
+    fp = from_pharmacophore(phar, fuzzy_shape='v1')
+
+    expected = intbitset([
+        2,
+        159,
+        160,
+        161,
+        175,
+        176,
+        177,
+        120031,
+        120284,
+        120291,
+        120515,
+        120521,  # bit_info=HHHett, dists=(4, 19, 19)
+        120522,  # bit_info=HHHetu, dists=(4, 19, 20)
+        120528,  # bit_info=HHHeuv, dists=(4, 20, 21)
+        120532,  # bit_info=HHHevv, dists=(4, 21, 21)
+    ])
+    assert fp.tolist() == expected.tolist()
+
+
+def test_from_pharmacophore_with_no_fuzzy():
+    phar = Pharmacophore([
+        Feature('LIPO', (106.4755, 93.5077, 98.8115)),
+        Feature('LIPO', (104.4201, 94.1307, 93.9420)),
+        Feature('LIPO', (103.5509, 96.8359, 92.5697)),
+    ])
+
+    fp = from_pharmacophore(phar, fuzzy_factor=0)
+
+    expected = intbitset([
+        2,  # bit_info=H
+        160,  # bit_info=HdH
+        163,  # bit_info=HgH
+        166,  # bit_info=HjH
+        120124,  # bit_info=HHHdgj
+    ])
+    assert fp.tolist() == expected.tolist()
+
+
+def test_from_pharmacophore_with_one_fuzzyshape():
+    phar = Pharmacophore([
+        Feature('LIPO', (106.4755, 93.5077, 98.8115)),
+        Feature('LIPO', (104.4201, 94.1307, 93.9420)),
+        Feature('LIPO', (103.5509, 96.8359, 92.5697)),
+    ])
+
+    fp = from_pharmacophore(phar, fuzzy_shape='one')
+
+    expected = intbitset([
+        2,  # bit_info=H
+        159,  # bit_info=HcH
+        160,  # bit_info=HdH origin
+        161,  # bit_info=HeH
+        162,  # bit_info=HfH
+        163,  # bit_info=HgH origin
+        164,  # bit_info=HhH
+        165,  # bit_info=HiH
+        166,  # bit_info=HjH origin
+        167,  # bit_info=HkH
+        119871,  # bit_info=HHHcgj -1, 0, 0
+        120105,  # bit_info=HHHdfj 0, -1 ,0
+        120123,  # bit_info=HHHdgi 0, 0, -1
+        120124,  # bit_info=HHHdgj 0, 0, 0
+        120125,  # bit_info=HHHdgk 0, 0, 1
+        120142,  # bit_info=HHHdhj 0, 1, 0
+        120355,  # bit_info=HHHegj 1, 0, 0
+    ])
     assert fp.tolist() == expected.tolist()
