@@ -1,4 +1,5 @@
 import pytest
+from rdkit.Chem import AllChem
 
 from rdkit.Chem.rdmolfiles import MolFromSmiles, MolToSmiles
 
@@ -52,8 +53,9 @@ def mols2smiles(mols):
 def test_react(reactant, expected_products):
     reactor = Reactor()
     reactant_mol = MolFromSmiles(reactant)
+    AllChem.EmbedMolecule(reactant_mol, AllChem.ETKDG())
     products = reactor.react(reactant_mol)
 
     products = mols2smiles(products)
-    print(products)
     assert products == expected_products
+
