@@ -1,9 +1,10 @@
 import logging
 from typing import List
 
+import pybel
 from atomium.structures.chains import Site
 from atomium.structures.molecules import Molecule
-from rdkit.Chem import MolFromPDBBlock, SanitizeMol, RWMol, Mol
+from rdkit.Chem import MolFromPDBBlock, SanitizeMol, RWMol, Mol, MolFromMol2Block
 from rdkit.Chem.Descriptors import MolWt
 
 from .reactor import Reactor
@@ -47,6 +48,35 @@ def remove_nonpdb_bonds(rdkit_mol: Mol, atomium_mol: Molecule) -> Mol:
                                 a_serial, a.GetSymbol(),
                                 o_serial, o.GetSymbol())
     return rwmol.GetMol()
+
+
+def hetpdb2mol(pdb_mol: Molecule) -> Mol:
+    """Converts atomium Molecule to RDKit molecule via Open Babel
+
+    Via Open Babel because reading PDB with RDKIT looses aromaticity.
+
+    1. Convert PDB with Open Babel to SDF
+    2. Read SDF with RDKIT
+    3. Assign AtomPDBResidueInfo to atoms with same symbol+position
+
+    Args:
+        pdb_mol: atomium molecule
+
+    Returns:
+        RDKit molecule
+    """
+    # 1. Convert PDB with Open Babel to SDF
+    pdb_block = pdb_mol.to_file_string('pdb')
+    mol = pybel.readstring('pdb', pdb_block)
+    mol2_block = mol.write('mol2')
+    # 2. Read SDF with RDKIT
+    rdkit_mol = MolFromMol2Block(mol2_block, sanitize=False)
+    # 3. Assign AtomPDBResidueInfo to atoms with same symbol+position
+    conf = rdkit_mol.GetConformer()
+    for
+    # Atom.SetMonomerInfo(Chem.AtomPDBResidueInfo(...))
+
+    return rdkit_mol
 
 
 class Ligand:
@@ -133,6 +163,7 @@ class Ligand:
         """
         try:
             block = self.pdb_block()
+            mol_block = hetpdb2mol(block)
         except ValueError as e:
             raise AtomiumParseError(*e.args)
         mol = MolFromPDBBlock(block, sanitize=False)
