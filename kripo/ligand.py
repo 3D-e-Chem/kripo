@@ -4,7 +4,8 @@ from typing import List
 import pybel
 from atomium.structures.chains import Site
 from atomium.structures.molecules import Molecule
-from rdkit.Chem import MolFromPDBBlock, SanitizeMol, RWMol, Mol, MolFromMol2Block
+from rdkit.Chem import MolFromPDBBlock, SanitizeMol, RWMol, Mol, MolFromMol2Block, MolFromMolBlock, BondType
+from rdkit.Chem.AllChem import AssignBondOrdersFromTemplate
 from rdkit.Chem.Descriptors import MolWt
 
 from .reactor import Reactor
@@ -50,6 +51,67 @@ def remove_nonpdb_bonds(rdkit_mol: Mol, atomium_mol: Molecule) -> Mol:
     return rwmol.GetMol()
 
 
+def AssignBondOrdersFromTemplateWithoutSanitize(refmol: Mol, mol: Mol) -> Mol:
+    """assigns bond orders to a molecule based on the
+      bond orders in a template molecule
+
+    AllChem.AssignBondOrdersFromTemplate, performs sanitize which is unwanted,
+    so this is a copy with the sanitize removed.
+
+    Args:
+        refmol: the template molecule
+        mol: the molecule to assign bond orders to
+
+    Returns:
+        Molecule with its bond orders overwritten by the template
+    """
+    refmol2 = Mol(refmol)
+    mol2 = Mol(mol)
+    # do the molecules match already?
+    matching = mol2.GetSubstructMatch(refmol2)
+    if not matching:  # no, they don't match
+        # check if bonds of mol are SINGLE
+        for b in mol2.GetBonds():
+            if b.GetBondType() != BondType.SINGLE:
+                b.SetBondType(BondType.SINGLE)
+                b.SetIsAromatic(False)
+        # set the bonds of mol to SINGLE
+        for b in refmol2.GetBonds():
+            b.SetBondType(BondType.SINGLE)
+            b.SetIsAromatic(False)
+        # set atom charges to zero;
+        for a in refmol2.GetAtoms():
+            a.SetFormalCharge(0)
+        for a in mol2.GetAtoms():
+            a.SetFormalCharge(0)
+
+        matching = mol2.GetSubstructMatches(refmol2, uniquify=False)
+        # do the molecules match now?
+        if matching:
+            if len(matching) > 1:
+                logger.warning("More than one matching pattern found - picking one")
+            matching = matching[0]
+            # apply matching: set bond properties
+            for b in refmol.GetBonds():
+                atom1 = matching[b.GetBeginAtomIdx()]
+                atom2 = matching[b.GetEndAtomIdx()]
+                b2 = mol2.GetBondBetweenAtoms(atom1, atom2)
+                b2.SetBondType(b.GetBondType())
+                b2.SetIsAromatic(b.GetIsAromatic())
+            # apply matching: set atom properties
+            for a in refmol.GetAtoms():
+                a2 = mol2.GetAtomWithIdx(matching[a.GetIdx()])
+                a2.SetHybridization(a.GetHybridization())
+                a2.SetIsAromatic(a.GetIsAromatic())
+                a2.SetNumExplicitHs(a.GetNumExplicitHs())
+                a2.SetFormalCharge(a.GetFormalCharge())
+            if hasattr(mol2, '__sssAtoms'):
+                mol2.__sssAtoms = None  # we don't want all bonds highlighted
+        else:
+            raise ValueError("No matching found")
+    return mol2
+
+
 def hetpdb2mol(pdb_mol: Molecule) -> Mol:
     """Converts atomium Molecule to RDKit molecule via Open Babel
 
@@ -57,7 +119,7 @@ def hetpdb2mol(pdb_mol: Molecule) -> Mol:
 
     1. Convert PDB with Open Babel to SDF
     2. Read SDF with RDKIT
-    3. Assign AtomPDBResidueInfo to atoms with same symbol+position
+    3. Assign bond orders based using Open Babel molecule as template
 
     Args:
         pdb_mol: atomium molecule
@@ -67,16 +129,14 @@ def hetpdb2mol(pdb_mol: Molecule) -> Mol:
     """
     # 1. Convert PDB with Open Babel to SDF
     pdb_block = pdb_mol.to_file_string('pdb')
-    mol = pybel.readstring('pdb', pdb_block)
-    mol2_block = mol.write('mol2')
+    babel_mol = pybel.readstring('pdb', pdb_block)
+    babel_mol.OBMol.AddHydrogens(False, True, 7.4)
+    mol_block = babel_mol.write('mol')
     # 2. Read SDF with RDKIT
-    rdkit_mol = MolFromMol2Block(mol2_block, sanitize=False)
-    # 3. Assign AtomPDBResidueInfo to atoms with same symbol+position
-    conf = rdkit_mol.GetConformer()
-    for
-    # Atom.SetMonomerInfo(Chem.AtomPDBResidueInfo(...))
-
-    return rdkit_mol
+    mol_from_babel = MolFromMolBlock(mol_block, sanitize=False)
+    # 3. Assign bond orders based using Open Babel molecule as template
+    mol_from_rdkit = MolFromPDBBlock(pdb_block, sanitize=False)
+    return AssignBondOrdersFromTemplateWithoutSanitize(mol_from_babel, mol_from_rdkit)
 
 
 class Ligand:
@@ -159,14 +219,12 @@ class Ligand:
         return int(self.id()[1:])
 
     def rdkit_mol(self) -> Mol:
-        """Return RDKit molecule of Atomium molecule
+        """Return RDKit molecule based on Atomium molecule
         """
         try:
-            block = self.pdb_block()
-            mol_block = hetpdb2mol(block)
+            mol = hetpdb2mol(self.molecule)
         except ValueError as e:
             raise AtomiumParseError(*e.args)
-        mol = MolFromPDBBlock(block, sanitize=False)
         if not mol:
             raise RdkitParseError('RDKit unable to read ligand ' + self.name())
         mol = remove_nonpdb_bonds(mol, self.molecule)

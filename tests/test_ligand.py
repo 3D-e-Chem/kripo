@@ -4,6 +4,7 @@ from rdkit.Chem.rdmolops import SanitizeMol
 from atomium.files.pdbdict2pdb import pdb_dict_to_pdb
 from atomium.files.pdbstring2pdbdict import pdb_string_to_pdb_dict
 
+
 def test_name(ligand_3heg_bax: Ligand):
     assert ligand_3heg_bax.name() == 'BAX'
 
@@ -194,3 +195,12 @@ CONECT 2877 2838
     result = remove_nonpdb_bonds(rmol, amol)
 
     SanitizeMol(result)
+
+
+def test_rdkit_mol(ligand_3heg_bax: Ligand):
+    mol = ligand_3heg_bax.rdkit_mol()
+
+    smiles = MolToSmiles(mol)
+    assert 'c' in smiles  # aromatic bonds
+    assert 'H' in smiles  # has hydrogens
+    assert '=' in smiles  # double bonds
