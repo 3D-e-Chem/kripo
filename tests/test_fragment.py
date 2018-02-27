@@ -4,29 +4,102 @@ from atomium.structures import Residue
 
 from kripo.fragment import Fragment, is_residue_nearby
 from kripo.ligand import Ligand
+from rdkit.Chem.rdmolfiles import MolToSmiles
 
 
 def test_parent(ligand_3heg_bax: Ligand, fragment1_3heg_bax: Fragment):
     assert fragment1_3heg_bax.parent == ligand_3heg_bax.molecule
 
 
-def test_atom_names__when_fragment_is_whole_ligand(ligand_3heg_bax: Ligand, fragment1_3heg_bax: Fragment):
+def test_atom_names__when_fragment_is_whole_ligand(fragment1_3heg_bax: Fragment):
     names = fragment1_3heg_bax.atom_names()
 
-    expected_names = {a.name() for a in ligand_3heg_bax.molecule.atoms()}
-    assert len(names) > 0
-    assert set(names) == expected_names
+    expected = {
+        'C1',
+        'C13',
+        'C16',
+        'C17',
+        'C18',
+        'C19',
+        'C2',
+        'C20',
+        'C21',
+        'C23',
+        'C24',
+        'C25',
+        'C27',
+        'C28',
+        'C29',
+        'C3',
+        'C31',
+        'C4',
+        'C5',
+        'C6',
+        'C7',
+        'CL11',
+        'F10',
+        'F8',
+        'F9',
+        'H',
+        'N12',
+        'N14',
+        'N26',
+        'N30',
+        'O15',
+        'O22',
+        'O32',
+    }
+
+    assert set(names) == expected
 
 
-def test_atom_names__when_fragment_is_part_ofligand(ligand_3heg_bax: Ligand, fragment2_3heg_bax: Fragment):
+def test_atom_names__when_fragment_is_part_ofligand(fragment2_3heg_bax: Fragment):
     names = set(fragment2_3heg_bax.atom_names())
 
-    expected_names = {a.name() for a in ligand_3heg_bax.molecule.atoms()}
-    assert names.issubset(expected_names)
+    expected = {
+        'C1',
+        'C13',
+        'C16',
+        'C17',
+        'C18',
+        'C19',
+        'C2',
+        'C20',
+        'C21',
+        'C23',
+        'C24',
+        'C25',
+        'C28',
+        'C3',
+        'C4',
+        'C5',
+        'C6',
+        'C7',
+        'CL11',
+        'F10',
+        'F8',
+        'F9',
+        'H',
+        'N12',
+        'N14',
+        'N26',
+        'O15',
+        'O22'
+    }
+
+    assert names == expected
 
 
-def seq_nrs_of_site(site):
-    return {int(r.residue_id().replace('A', '')) for r in site.residues()}
+def test_atom_names__exclude_hydrogens(fragment25_3heg_bax: Fragment):
+    names = set(fragment25_3heg_bax.atom_names(include_hydrogen=False))
+
+    expected = {'O32', 'N30', 'C31'}
+
+    assert names == expected
+
+
+def seq_nrs_of_site(site, chain='A'):
+    return {int(r.residue_id().replace(chain, '')) for r in site.residues()}
 
 
 def test_site__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
@@ -147,14 +220,14 @@ def test_nr_r_groups(fragment2_3heg_bax: Fragment):
 def test_hash_code__when_fragment_is_ligand(fragment1_3heg_bax: Fragment):
     hash_code = fragment1_3heg_bax.hash_code()
 
-    expected_hash_code = 'd9d9b4f739ee20d01265e4beaf585cb2'
+    expected_hash_code = '51980afadf63a7e7c8e95ba4f5e412ee'
     assert hash_code == expected_hash_code
 
 
 def test_hash_code__when_fragment_is_not_ligand(fragment2_3heg_bax: Fragment):
     hash_code = fragment2_3heg_bax.hash_code()
 
-    expected_hash_code = 'b4c7f443f1488af226fbde865b99876e'
+    expected_hash_code = '321353d33d97536e5014344e8e254dd4'
     assert hash_code == expected_hash_code
 
 
@@ -186,3 +259,18 @@ def test_is_residue_nearby__radiustoobig_valueerror():
         is_residue_nearby(fragment_atoms, residue, radius)
 
     assert 'Radius must be smaller than' in str(excinfo.value)
+
+
+def test_smiles(fragment1_3heg_bax: Fragment):
+    mol = fragment1_3heg_bax.smiles()
+
+    expected = '[H]c1nc(C(=O)N([H])C([H])([H])[H])c([H])c(Oc2c([H])c([H])c(N([H])C(=O)N([H])c3c([H])c([H])c(Cl)c(C(F)' \
+               '(F)F)c3[H])c([H])c2[H])c1[H]'
+    assert mol == expected
+
+
+def test_unprotonated_molecule(fragment1_3heg_bax: Fragment):
+    mol = fragment1_3heg_bax.unprotonated_molecule()
+
+    expected = 'CNC(=O)c1cc(Oc2ccc(NC(=O)Nc3ccc(Cl)c(C(F)(F)F)c3)cc2)ccn1'
+    assert MolToSmiles(mol) == expected

@@ -4,7 +4,7 @@ from typing import Set
 from atomium.structures.chains import Site
 from atomium.structures.molecules import Molecule, Residue
 from atomium.structures.atoms import Atom
-from rdkit.Chem import Mol, MolToSmiles, MolToMolBlock
+from rdkit.Chem import Mol, MolToSmiles, RemoveHs
 
 """Residues within radius of ligand are site residues"""
 BINDING_SITE_RADIUS = 6
@@ -28,21 +28,27 @@ class Fragment:
 
     Attributes:
         parent (atomium.structures.molecules.Molecule): The parent ligand
-        molecule (Mol): Fragment molecule
+        molecule (Mol): Fragment molecule with hydrogens
 
     """
     def __init__(self, parent: Molecule, molecule: Mol):
         self.parent = parent
         self.molecule = molecule
 
-    def atom_names(self):
+    def atom_names(self, include_hydrogen=True):
         """Ligand atom names which make up the fragment
+
+        Excludes hydrogens
 
         Returns:
             List[str]: Atom names
 
         """
-        return [a.GetPDBResidueInfo().GetName().strip() for a in self.molecule.GetAtoms() if a.GetPDBResidueInfo() is not None]
+        return [
+            a.GetPDBResidueInfo().GetName().strip()
+            for a in self.molecule.GetAtoms()
+            if a.GetPDBResidueInfo() is not None and (include_hydrogen or a.GetSymbol() != 'H')
+        ]
 
     def atoms(self) -> Set[Atom]:
         """Atoms of fragment
@@ -125,3 +131,8 @@ class Fragment:
     @name.setter
     def name(self, name: str):
         self.molecule.SetProp('_Name', name)
+
+    def unprotonated_molecule(self) -> Mol:
+        """Return molecule with all hydrogens removed
+        """
+        return RemoveHs(self.molecule)

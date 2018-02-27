@@ -2,11 +2,12 @@ from sqlite3 import IntegrityError
 
 import click
 
-from kripo.fragment import Fragment
-from kripo.ligand import RdkitParseError, AtomiumParseError, Ligand
-from kripo.pdb import pdb_from_file, ligands
-from kripo.pharmacophore import from_fragment, NoFeatures
-from kripo.site import chain_of_site
+from .fragment import Fragment
+from .ligand import RdkitParseError, AtomiumParseError, Ligand
+from .pdb import pdb_from_file, ligands
+from .pharmacophore import from_fragment, NoFeatures
+from .site import chain_of_site
+from kripodb.db import FragmentsDb
 
 
 def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor, fuzzy_shape, fragmentation=True):
@@ -27,7 +28,7 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
     pdb = pdb_from_file(pdb_fn)
     for ligand in ligands(pdb):
         click.echo('Ligand {0}'.format(ligand.name()))
-        if is_ligand_stored(fragments_db, pdb.code(), ligand.name()):
+        if fragments_db.is_ligand_stored(pdb.code(), ligand.name()):
             msg = 'Ligand {0} of pdb {1} already present, skipping'.format(ligand.name(), pdb.code())
             click.secho(msg, bold=True)
             continue
@@ -93,15 +94,7 @@ def build_frag_id(thepdb, ligand, frag_nr):
     return pdb_code + '_' + het_code + '_frag' + str(frag_nr)
 
 
-def is_ligand_stored(fragments_db, pdb_code, het_code):
-    sql = 'SELECT 1 FROM fragments WHERE pdb_code=? AND het_code=?'
-    fragments_db.cursor.execute(sql, (pdb_code.lower(), het_code))
-    res = fragments_db.cursor.fetchone()
-    return res is not None
-
-
-def add_fragment2db(thepdb, ligand: Ligand, frag_nr, fragment: Fragment, fragments_db):
-    # TODO move to kripodb, should not use sql here
+def add_fragment2db(thepdb, ligand: Ligand, frag_nr, fragment: Fragment, fragments_db: FragmentsDb):
     frag_id = fragment.name
     pdb_code = thepdb.code().lower()
     het_code = ligand.name()
@@ -110,48 +103,23 @@ def add_fragment2db(thepdb, ligand: Ligand, frag_nr, fragment: Fragment, fragmen
     # A site can be in different chains, take the chain most residues belong to
     prot_chain = chain_of_site(fragment.site())
     hash_code = fragment.hash_code()
-    atom_codes = ','.join(fragment.atom_names())
+    atom_codes = ','.join(fragment.atom_names(include_hydrogen=False))
     nr_r_groups = fragment.nr_r_groups()
 
-    fragment_sql = '''INSERT INTO fragments (
-               frag_id,
-               pdb_code,
-               prot_chain,
-               het_code,
-               frag_nr,
-               atom_codes,
-               hash_code,
-               het_chain,
-               het_seq_nr,
-               nr_r_groups
-           ) VALUES (
-               :frag_id,
-               :pdb_code,
-               :prot_chain,
-               :het_code,
-               :frag_nr,
-               :atom_codes,
-               :hash_code,
-               :het_chain,
-               :het_seq_nr,
-               :nr_r_groups
-           )'''
-    fragment_row = {
-        'frag_id': frag_id,
-        'pdb_code': pdb_code,
-        'prot_chain': prot_chain,
-        'het_code': het_code,
-        'frag_nr': frag_nr,
-        'atom_codes': atom_codes,
-        'hash_code': hash_code,
-        'het_chain': het_chain,
-        'het_seq_nr': het_seq_nr,
-        'nr_r_groups': nr_r_groups,
-    }
-    fragments_db.cursor.execute(fragment_sql, fragment_row)
+    fragments_db.add_fragment(
+        frag_id=frag_id,
+        pdb_code=pdb_code,
+        prot_chain=prot_chain,
+        het_code=het_code,
+        frag_nr=frag_nr,
+        atom_codes=atom_codes,
+        hash_code=hash_code,
+        het_chain=het_chain,
+        het_seq_nr=het_seq_nr,
+        nr_r_groups=nr_r_groups,
+    )
+    fragments_db.add_molecule(fragment.unprotonated_molecule())
     fragments_db.commit()
-
-    fragments_db.add_molecule(fragment.molecule)
 
 
 def add_pharmacophore2db(pharmacophore_points, frag_id, pharmacophore):

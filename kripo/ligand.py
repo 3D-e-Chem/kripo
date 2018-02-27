@@ -11,7 +11,7 @@ from rdkit.Chem.Descriptors import MolWt
 from .reactor import Reactor
 from .fragment import Fragment, BINDING_SITE_RADIUS
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class RdkitParseError(ValueError):
@@ -57,6 +57,7 @@ def AssignBondOrdersFromTemplateWithoutSanitize(refmol: Mol, mol: Mol) -> Mol:
 
     AllChem.AssignBondOrdersFromTemplate, performs sanitize which is unwanted,
     so this is a copy with the sanitize removed.
+    Also the logging message was reduced from warning to info.
 
     Args:
         refmol: the template molecule
@@ -89,7 +90,7 @@ def AssignBondOrdersFromTemplateWithoutSanitize(refmol: Mol, mol: Mol) -> Mol:
         # do the molecules match now?
         if matching:
             if len(matching) > 1:
-                logger.warning("More than one matching pattern found - picking one")
+                logger.info("More than one matching pattern found - picking one")
             matching = matching[0]
             # apply matching: set bond properties
             for b in refmol.GetBonds():
