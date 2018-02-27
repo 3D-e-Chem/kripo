@@ -76,3 +76,10 @@ Contacts in the Choice of Side-chain Amide Orientation, J. Mol. Biol. 285, 1733-
 
 For protonation of ligand OpenBabel https://doi.org/10.1186/1758-2946-3-33 is used.
 
+Legal
+-----
+
+Kripo is copyright 2018 Vrije Unversiteit Amsterdam and Netherlands eScience Center. It is free, open source software. You can redistribute it and/or modify it under the terms of either:
+
+- The GNU General Public License as published by the Free Software Foundation, either version 2 or, (at your option), any later version, or
+- The Apache License 2.0
