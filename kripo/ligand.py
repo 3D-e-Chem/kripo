@@ -134,8 +134,12 @@ def hetpdb2mol(pdb_mol: Molecule) -> Mol:
     mol_block = babel_mol.write('mol')
     # 2. Read SDF with RDKIT
     mol_from_babel = MolFromMolBlock(mol_block, removeHs=False)
+    if not mol_from_babel:
+        raise RdkitParseError('RDKit unable to read ligand "{0}" from babel pdb2mol conversion'.format(pdb_mol.name()))
     # 3. Assign bond orders based using Open Babel molecule as template
     mol_from_rdkit = MolFromPDBBlock(pdb_block, sanitize=False)
+    if not mol_from_rdkit:
+        raise RdkitParseError('RDKit unable to read ligand "{0}" from pdb'.format(pdb_mol.name()))
     mol_from_rdkit = remove_nonpdb_bonds(mol_from_rdkit, pdb_mol)
     return AssignBondOrdersFromTemplateWithoutSanitize(mol_from_babel, mol_from_rdkit)
 
@@ -226,8 +230,6 @@ class Ligand:
             mol = hetpdb2mol(self.molecule)
         except ValueError as e:
             raise AtomiumParseError(*e.args)
-        if not mol:
-            raise RdkitParseError('RDKit unable to read ligand ' + self.name())
         try:
             SanitizeMol(mol)
         except ValueError as e:
