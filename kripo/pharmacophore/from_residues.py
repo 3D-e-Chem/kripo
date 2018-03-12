@@ -214,9 +214,13 @@ def features_from_histidines_sidechain(residue):
                 feature = Feature('HDON', pos)
                 features.add(feature)
             if not hydrogens:
-                pos = acceptor_of_uncharged_aromatic_nitrogen(nitrogen)
-                feature = Feature('HACC', pos)
-                features.add(feature)
+                try:
+                    pos = acceptor_of_uncharged_aromatic_nitrogen(nitrogen)
+                    feature = Feature('HACC', pos)
+                    features.add(feature)
+                except ValueError:
+                    msg = 'Skipping aromatic nitrogen acceptor as residue {0} has too many bonds'.format(residue)
+                    logging.warning(msg)
 
     ne2 = residue.atom(name='NE2')
     ce1 = residue.atom(name='CE1')
