@@ -38,8 +38,8 @@ class Feature:
             bool: True if feature is in contact with fragment.
         """
         min_dist = 999
-        for a in fragment.atoms():
-            dist = distance_between_positions(self.position, a.location())
+        for a in fragment.atom_positions():
+            dist = distance_between_positions(self.position, a)
             if dist < min_dist:
                 min_dist = dist
 

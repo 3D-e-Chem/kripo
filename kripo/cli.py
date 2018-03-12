@@ -44,7 +44,7 @@ def main():
               help='Fragment ligands',
               default=True,
               show_default=True)
-@click.option('--ligand-expob',
+@click.option('--ligand-expo',
               help='Ligand expo database file name',
               type=click.Path(dir_okay=False),
               default='ligand-expo.db')

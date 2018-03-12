@@ -64,6 +64,9 @@ class Fragment:
         """
         raise NotImplemented('Mapping of fragment atoms to pdb ligand atoms')
 
+    def atom_positions(self) -> List[Tuple[float, float, float]]:
+        return self.molecule.GetConformer().GetPositions()
+
     def site(self, radius=BINDING_SITE_RADIUS) -> Site:
         """Site of fragment
 
@@ -75,7 +78,7 @@ class Fragment:
         Returns:
             atomium.structures.chains.Site: Site
         """
-        fragment_positions = self.molecule.GetConformer().GetPositions()
+        fragment_positions = self.atom_positions()
         atoms_of_near_residues = set()
         residues = self.parent.model().residues()
         for residue in residues:
