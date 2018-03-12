@@ -4,7 +4,8 @@ from atomium.structures import Residue
 
 from .feature import Feature
 from .utils import feature_pos_of_bond, feature_pos_of_bond_rotated, bonded_hydrogens, atoms_by_name, \
-    center_of_atoms_by_name, sidechain_nitrogens, sidechain_carbons, add_hydrogens2sulfur_as_carbon
+    center_of_atoms_by_name, sidechain_nitrogens, sidechain_carbons, add_hydrogens2sulfur_as_carbon, \
+    acceptor_of_uncharged_aromatic_nitrogen
 from .vector import center_of_triangle, above, below
 
 H_dist = 0.8  # HYDROPHOBE
@@ -213,10 +214,9 @@ def features_from_histidines_sidechain(residue):
                 feature = Feature('HDON', pos)
                 features.add(feature)
             if not hydrogens:
-                logger.warning(
-                    'TODO: Not adding hydrogens to aromatic nitrogen of HIS, ' +
-                    'less features will be generated until this is implemented, ' +
-                    'of residue {0}'.format(residue))
+                pos = acceptor_of_uncharged_aromatic_nitrogen(nitrogen)
+                feature = Feature('HACC', pos)
+                features.add(feature)
 
     ne2 = residue.atom(name='NE2')
     ce1 = residue.atom(name='CE1')

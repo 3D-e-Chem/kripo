@@ -1,4 +1,4 @@
-from math import sqrt
+from math import sqrt, sin
 import logging
 
 from atomium.structures import Residue, Atom
@@ -109,30 +109,31 @@ def add_hydrogens2sulfur_as_carbon(resin: Residue) -> Residue:
             s2[1] - s[1],
             s2[2] - s[2],
         )
-        logging.warning(
-            "Adding hydrogens to sulfur with 90 degree angle between h-s-h, instead of 109.471 degrees")
-        anti_s12 = (
-            (s1_s[0] + s2_s[0]) * -0.5,
-            (s1_s[1] + s2_s[1]) * -0.5,
-            (s1_s[2] + s2_s[2]) * -0.5,
+        y = (
+            (
+                2 * s[0] - s1[0] - s2[0],
+                2 * s[1] - s1[1] - s2[1],
+                2 * s[2] - s1[2] - s2[2],
+            )
         )
+        oplane = normalize(y)
         plane = normalize(
             cross_product(s1_s, s2_s)
         )
-        plane_dist = (
-            sqrt(3 / 4) * plane[0],
-            sqrt(3 / 4) * plane[1],
-            sqrt(3 / 4) * plane[2],
-        )
+        d = 1.0
+        # sin(radians(54.75))
+        xang = 0.8166415551616789
+        # cos(radians(54.75))
+        yang = 0.5771451900372336
         h2 = (
-            s[0] - plane_dist[0] + anti_s12[0],
-            s[1] - plane_dist[1] + anti_s12[1],
-            s[2] - plane_dist[2] + anti_s12[2],
+            s[0] + d * xang * plane[0] + d * yang * oplane[0],
+            s[1] + d * xang * plane[1] + d * yang * oplane[1],
+            s[2] + d * xang * plane[2] + d * yang * oplane[2],
         )
         h3 = (
-            s[0] + plane_dist[0] + anti_s12[0],
-            s[1] + plane_dist[1] + anti_s12[1],
-            s[2] + plane_dist[2] + anti_s12[2],
+            s[0] - d * xang * plane[0] + d * yang * oplane[0],
+            s[1] - d * xang * plane[1] + d * yang * oplane[1],
+            s[2] - d * xang * plane[2] + d * yang * oplane[2],
         )
         atom_h2 = Atom(element='H',
                        x=h2[0],
@@ -149,3 +150,25 @@ def add_hydrogens2sulfur_as_carbon(resin: Residue) -> Residue:
         res.add_atom(atom_h3)
         s_atom.bond(atom_h3)
     return res
+
+
+def acceptor_of_uncharged_aromatic_nitrogen(nitrogen: Atom):
+    n = nitrogen.location()
+    (c1_atom, c2_atom) = list(nitrogen.bonded_atoms())
+    c1 = c1_atom.location()
+    c2 = c2_atom.location()
+    y = (
+        (
+            2 * n[0] - c1[0] - c2[0],
+            2 * n[1] - c1[1] - c2[1],
+            2 * n[2] - c1[2] - c2[2],
+        )
+    )
+    oplane = normalize(y)
+    d = 1.0
+    h = (
+        n[0] + d * oplane[0],
+        n[1] + d * oplane[1],
+        n[2] + d * oplane[2],
+    )
+    return h
