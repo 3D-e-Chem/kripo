@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
 
 """Console script for kripo."""
+import gzip
+from sqlite3 import IntegrityError
 
 import click
 
-from kripodb.db import FingerprintsDb, FragmentsDb
+from kripodb.db import FingerprintsDb, FragmentsDb, FastInserter
 from kripodb.pharmacophores import PharmacophoresDb
+from rdkit.Chem.rdmolfiles import ForwardSDMolSupplier
+from rdkit.Chem.rdmolops import SanitizeMol
 
+from kripo.ligandsdb import LigandsDb
 from .pharmacophore import Feature, Pharmacophore
 from .generator import generate_from_pdb
 from .fingerprint.threepoint import BIT_INFO, from_pharmacophore
-from .pdb import PdbDumpError, NoLigands
+from .pdb import PdbDumpError, NoLigands, UNWANTED_HETEROS
 
 
 @click.group()
@@ -70,6 +75,7 @@ def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor, fuzzy_
 
 @main.group(name='pharmacophores')
 def pharmacophores_group():
+    """Commands on pharmacophores"""
     pass
 
 
@@ -102,3 +108,44 @@ def pharmacophore2fingerprints(pharmacophores, fingerprints, fuzzy_factor, fuzzy
             pharmacophore = Pharmacophore(features)
             fingerprint = from_pharmacophore(pharmacophore, fuzzy_factor=fuzzy_factor, fuzzy_shape=fuzzy_shape)
             fingerprints_dict[frag_id] = fingerprint
+
+
+@main.group(name='ligands')
+def ligands_group():
+    """Commands on ligands"""
+    pass
+
+
+@ligands_group.command('import')
+@click.argument('ligandssdf', type=click.File('rb'))
+@click.argument('ligandsdb', type=click.Path(dir_okay=False, writable=True))
+def import_ligands(ligandsdb, ligandssdf):
+    """Convert ligand expo sdf to database
+
+    On http://ligand-expo.rcsb.org/ld-download.html download http://ligand-expo.rcsb.org/dictionaries/all-sdf.sdf.gz
+    and use as LIGANDSSDF
+    """
+    sdf_fn = gzip.open(ligandssdf)
+    gzsuppl = ForwardSDMolSupplier(sdf_fn, sanitize=False, removeHs=False)
+    with LigandsDb(ligandsdb) as db:
+        cursor = db.cursor
+        with FastInserter(cursor):
+            for mol in gzsuppl:
+                if mol is None:
+                    continue
+                mol_name = mol.GetProp('_Name')
+                # PDB ID _ Component ID _ Model No. _ Chain ID _ Residue No.
+                cols = mol_name.split('_')
+                if cols[1] in UNWANTED_HETEROS:
+                    click.secho('Unwanted ligand ' + cols[1] + ', skipping', fg='yellow')
+                    continue
+                try:
+                    SanitizeMol(mol)
+                except ValueError:
+                    click.secho('Unable to sanitize ' + mol_name + ', skipping', fg='yellow')
+                    continue
+                lig_id = cols[0] + '_' + cols[1] + '_' + cols[2] + '_' + cols[3] + '_' + cols[4]
+                try:
+                    cursor.execute('INSERT INTO ligands VALUES (?, ?)', (lig_id, mol,))
+                except IntegrityError:
+                    click.secho('Duplicate ' + mol_name + ', skipping', fg='yellow')
