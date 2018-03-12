@@ -11,7 +11,7 @@ from kripodb.pharmacophores import PharmacophoresDb
 from rdkit.Chem.rdmolfiles import ForwardSDMolSupplier
 from rdkit.Chem.rdmolops import SanitizeMol
 
-from kripo.ligandsdb import LigandsDb
+from .ligandexpodb import LigandExpoDb
 from .pharmacophore import Feature, Pharmacophore
 from .generator import generate_from_pdb
 from .fingerprint.threepoint import BIT_INFO, from_pharmacophore
@@ -30,12 +30,12 @@ def main():
 @click.argument('fragments', type=click.Path(writable=True, dir_okay=False))
 @click.argument('pharmacophores', type=click.Path(writable=True, dir_okay=False))
 @click.argument('fingerprints', type=click.Path(writable=True, dir_okay=False))
-@click.option('--fuzzy_factor',
+@click.option('--fuzzy-factor',
               type=int,
               help='Number of bins below/above actual bin to include in fingerprint',
               default=1,
               show_default=True)
-@click.option('--fuzzy_shape',
+@click.option('--fuzzy-shape',
               type=click.Choice(('all', 'one', 'v1')),
               help='Shape of bins around actual bin',
               default='all',
@@ -44,7 +44,11 @@ def main():
               help='Fragment ligands',
               default=True,
               show_default=True)
-def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor, fuzzy_shape, fragmentation):
+@click.option('--ligand-expo-db',
+              help='Ligand expo database file name',
+              type=click.Path(dir_okay=False),
+              default='ligand-expo.db')
+def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor, fuzzy_shape, fragmentation, ligand_expo_db):
     """Generate fragments, pharmacophores and fingerprints for given pdb files
 
     * PDBS, Name of file with a PDB filename on each line
@@ -127,7 +131,7 @@ def import_ligands(ligandsdb, ligandssdf):
     """
     sdf_fn = gzip.open(ligandssdf)
     gzsuppl = ForwardSDMolSupplier(sdf_fn, sanitize=False, removeHs=False)
-    with LigandsDb(ligandsdb) as db:
+    with LigandExpoDb(ligandsdb) as db:
         cursor = db.cursor
         with FastInserter(cursor):
             for mol in gzsuppl:

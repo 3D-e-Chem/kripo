@@ -1,12 +1,12 @@
 from kripodb.db import SqliteDb, SqliteDict
 
 
-class LigandsDict(SqliteDict):
+class LigandExpoDict(SqliteDict):
     def __init__(self, connection):
         super().__init__(connection, 'ligands', 'lig_id', 'mol')
 
 
-class LigandsDb(SqliteDb):
+class LigandExpoDb(SqliteDb):
     def create_tables(self):
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS ligands (
             lig_id TEXT PRIMARY KEY,
@@ -14,4 +14,4 @@ class LigandsDb(SqliteDb):
         )''')
 
     def as_dict(self):
-        return LigandsDict(self.connection)
+        return LigandExpoDict(self.connection)
