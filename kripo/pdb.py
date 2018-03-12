@@ -1,3 +1,4 @@
+import logging
 from typing import List, Dict
 
 import atomium
@@ -8,6 +9,8 @@ from rdkit.Chem import Mol
 
 from .ligand import Ligand
 from .protonate import protonate, protonate_molecule
+
+logger = logging.getLogger(__name__)
 
 """Unwanted heteros, like solvents, metals, sugars, etc."""
 UNWANTED_HETEROS = {
@@ -72,9 +75,13 @@ def ligands(pdb: Pdb, ligand_expo: Dict[str, Mol]) -> List[Ligand]:
     for amol in model.molecules(generic=True):
         amol_id = amol.molecule_id()
         lig_id = pdb.code().lower() + '_' + amol.name() + '_1_' + amol_id[0] + '_' + amol_id[1:]
-        lig = ligand_expo[lig_id]
-        plig = protonate_molecule(lig)
-        ligs[lig_id] = Ligand(amol, plig)
+        try:
+            lig = ligand_expo[lig_id]
+            plig = protonate_molecule(lig)
+            ligs[lig_id] = Ligand(amol, plig)
+        except KeyError:
+            logger.warning('Unable to find {0} in ligand expo db, skipping'.format(lig_id))
+            pass
 
     if not ligs:
         raise NoLigands()
