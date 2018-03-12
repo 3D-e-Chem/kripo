@@ -161,7 +161,11 @@ def remove_non_contacting_molecules(pdb: Pdb):
     for mol in sorted(model.molecules(generic=True), key=lambda m: m.molecule_id()):
         in_contact_with_protein = ligand_contacts_protein(mol, model)
         if not in_contact_with_protein:
-            model.remove_molecule(mol)
+            try:
+                model.remove_molecule(mol)
+            except KeyError:
+                # in 1efr was unable to delete atom with key 22969, ignore error
+                pass
 
 
 def ligand_contacts_protein(ligand: Molecule, model: Model) -> bool:
