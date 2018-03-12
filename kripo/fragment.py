@@ -1,23 +1,33 @@
 from hashlib import md5
-from typing import Set
+from typing import Set, List, Tuple
 
 from atomium.structures.chains import Site
 from atomium.structures.molecules import Molecule, Residue
 from atomium.structures.atoms import Atom
+from math import sqrt
 from rdkit.Chem import Mol, MolToSmiles, RemoveHs
 
 """Residues within radius of ligand are site residues"""
 BINDING_SITE_RADIUS = 6
 
 
-def is_residue_nearby(fragment_atoms: Set[Atom], residue: Residue, radius: float) -> bool:
+def distance_between_positions(pos1, pos2):
+    d = (
+        pos1[0] - pos2[0],
+        pos1[1] - pos2[1],
+        pos1[2] - pos2[2],
+    )
+    return sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
+
+
+def is_residue_nearby(fragment_positions: List[Tuple[float, float, float]], residue: Residue, radius: float) -> bool:
     residue_atoms = residue.atoms()
     min_distance = 9999.0
     if radius > min_distance:
         raise ValueError("Radius must be smaller than {0}".format(min_distance))
-    for fragment_atom in fragment_atoms:
+    for fragment_position in fragment_positions:
         for residue_atom in residue_atoms:
-                dist = fragment_atom.distance_to(residue_atom)
+                dist = distance_between_positions(fragment_position, residue_atom.location())
                 if dist < min_distance:
                     min_distance = dist
     return min_distance < radius
@@ -44,11 +54,7 @@ class Fragment:
             List[str]: Atom names
 
         """
-        return [
-            a.GetPDBResidueInfo().GetName().strip()
-            for a in self.molecule.GetAtoms()
-            if a.GetPDBResidueInfo() is not None and (include_hydrogen or a.GetSymbol() != 'H')
-        ]
+        raise NotImplemented('Mapping of fragment atoms to pdb ligand atoms')
 
     def atoms(self) -> Set[Atom]:
         """Atoms of fragment
@@ -56,17 +62,7 @@ class Fragment:
         Returns:
             collection of atoms
         """
-        fragment_names = set(self.atom_names())
-        atoms = set()
-
-        for atom in self.parent.atoms():
-            if atom.name() in fragment_names:
-                atoms.add(atom)
-                # add hydrogens bonded to atom, because atom_names does not include anonymous hydrogens
-                for bonded_atom in atom.bonded_atoms():
-                    if bonded_atom.element() == 'H':
-                        atoms.add(bonded_atom)
-        return atoms
+        raise NotImplemented('Mapping of fragment atoms to pdb ligand atoms')
 
     def site(self, radius=BINDING_SITE_RADIUS) -> Site:
         """Site of fragment
@@ -79,15 +75,14 @@ class Fragment:
         Returns:
             atomium.structures.chains.Site: Site
         """
-        fragment_atoms = self.atoms()
+        fragment_positions = self.molecule.GetConformer().GetPositions()
         atoms_of_near_residues = set()
         residues = self.parent.model().residues()
         for residue in residues:
-            if is_residue_nearby(fragment_atoms, residue, radius):
+            if is_residue_nearby(fragment_positions, residue, radius):
                 atoms_of_near_residues.update(residue.atoms())
 
-        ligand = Molecule(*fragment_atoms, molecule_id=self.parent.molecule_id(), name=self.parent.name())
-        return Site(*atoms_of_near_residues, ligand=ligand)
+        return Site(*atoms_of_near_residues)
 
     def nr_r_groups(self):
         """Number of R groups in fragment

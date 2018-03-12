@@ -7,6 +7,7 @@ from atomium.files.pdb import Pdb
 from atomium.files.pdbdict2pdb import pdb_dict_to_pdb
 from atomium.files.pdbstring2pdbdict import pdb_string_to_pdb_dict
 from atomium.structures import Model, Atom
+from rdkit.Chem import MolToMolBlock, Mol, MolFromMolBlock
 
 logger = logging.getLogger()
 
@@ -36,6 +37,12 @@ def protonate_protein(pdb_block: str, timeout: int=300, flags: List[str]=('-OH',
         out, err = proc.communicate()
 
     return out.decode(), err.decode()
+
+
+def protonate_molecule(mol_in: Mol, ph=7.4) -> Mol:
+    mol = pybel.readstring('mol', MolToMolBlock(mol_in))
+    mol.OBMol.AddHydrogens(False, True, ph)
+    return MolFromMolBlock(mol.write('mol'), removeHs=False)
 
 
 def protonate_ligand(pdb_block: str, ph=7.4) -> str:

@@ -1,12 +1,13 @@
-from typing import List
+from typing import List, Dict
 
 import atomium
 from atomium.structures import Model
 from atomium.structures.molecules import Molecule
 from atomium.files.pdb import Pdb
+from rdkit.Chem import Mol
 
 from .ligand import Ligand
-from .protonate import protonate
+from .protonate import protonate, protonate_molecule
 
 """Unwanted heteros, like solvents, metals, sugars, etc."""
 UNWANTED_HETEROS = {
@@ -53,11 +54,12 @@ class PdbDumpError(TypeError):
     pass
 
 
-def ligands(pdb: Pdb) -> List[Ligand]:
+def ligands(pdb: Pdb, ligand_expo: Dict[str, Mol]) -> List[Ligand]:
     """Ligands of a pdb
 
     Args:
         pdb: The pdb
+        ligand_expo: Dictionary with molecules of ligand expo
 
     Raises:
         NoLigands: When PDB has no ligands
@@ -66,7 +68,14 @@ def ligands(pdb: Pdb) -> List[Ligand]:
         List of ligands, ordered by name
     """
     model = pdb.model()
-    ligs = {mol.name(): Ligand(mol) for mol in model.molecules(generic=True)}
+    ligs = {}
+    for amol in model.molecules(generic=True):
+        amol_id = amol.molecule_id()
+        lig_id = pdb.code().lower() + '_' + amol.name() + '_1_' + amol_id[0] + '_' + amol_id[1:]
+        lig = ligand_expo[lig_id]
+        plig = protonate_molecule(lig)
+        ligs[lig_id] = Ligand(amol, plig)
+
     if not ligs:
         raise NoLigands()
     return sorted(ligs.values(), key=lambda l: l.name())
@@ -102,7 +111,7 @@ def pdb_from_atomium_pdb(pdb: Pdb, hydrogenate=True, clean=True) -> Pdb:
         remove_unwanted_molecules(pdb)
     if hydrogenate:
         try:
-            pdb = protonate(pdb, het=True)
+            pdb = protonate(pdb, het=False)
         except TypeError as e:
             raise PdbDumpError(pdb) from e
     if clean:

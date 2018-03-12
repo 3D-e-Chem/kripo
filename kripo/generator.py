@@ -10,7 +10,7 @@ from .site import chain_of_site
 from kripodb.db import FragmentsDb
 
 
-def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor, fuzzy_shape, fragmentation=True):
+def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, ligand_expo_dict, fuzzy_factor, fuzzy_shape, fragmentation=True):
     """Generate pharmacophore fingerprints from a pdb and store them
 
     Args:
@@ -18,6 +18,7 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
         fragments_db (kripodb.db.FragmentsDb): Fragments database
         pharmacophore_points (kripodb.pharmacophores.PharmacophorePointsTable): Pharmacophores database
         fingerprints_dict (kripodb.db.IntbitsetDict): Fingerprints db dictionary
+        ligand_expo_dict (LigandExpoDict): Ligand expo dictionary
         fuzzy_factor (int): The fuzzy factor
         fuzzy_shape (str): The fuzzy shape
         fragmentation (bool): When true the ligand is fragmented and the whole ligand
@@ -26,7 +27,7 @@ def generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_d
     """
     click.echo('Parsing {0}'.format(pdb_fn))
     pdb = pdb_from_file(pdb_fn)
-    for ligand in ligands(pdb):
+    for ligand in ligands(pdb, ligand_expo_dict):
         click.echo('Ligand {0}'.format(ligand.name()))
         if fragments_db.is_ligand_stored(pdb.code(), ligand.name()):
             msg = 'Ligand {0} of pdb {1} already present, skipping'.format(ligand.name(), pdb.code())
@@ -103,7 +104,9 @@ def add_fragment2db(thepdb, ligand: Ligand, frag_nr, fragment: Fragment, fragmen
     # A site can be in different chains, take the chain most residues belong to
     prot_chain = chain_of_site(fragment.site())
     hash_code = fragment.hash_code()
-    atom_codes = ','.join(fragment.atom_names(include_hydrogen=False))
+    # TODO implement atom_names
+    atom_codes = ''
+    # atom_codes = ','.join(fragment.atom_names(include_hydrogen=False))
     nr_r_groups = fragment.nr_r_groups()
 
     fragments_db.add_fragment(

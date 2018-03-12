@@ -44,11 +44,11 @@ def main():
               help='Fragment ligands',
               default=True,
               show_default=True)
-@click.option('--ligand-expo-db',
+@click.option('--ligand-expob',
               help='Ligand expo database file name',
               type=click.Path(dir_okay=False),
               default='ligand-expo.db')
-def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor, fuzzy_shape, fragmentation, ligand_expo_db):
+def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor, fuzzy_shape, fragmentation, ligand_expo):
     """Generate fragments, pharmacophores and fingerprints for given pdb files
 
     * PDBS, Name of file with a PDB filename on each line
@@ -62,13 +62,15 @@ def generate(pdbs, fragments, pharmacophores, fingerprints, fuzzy_factor, fuzzy_
 
     with FragmentsDb(fragments) as fragments_db, \
             PharmacophoresDb(pharmacophores, mode='a') as pharmacophores_db, \
-            FingerprintsDb(fingerprints) as fingerprints_db:
+            FingerprintsDb(fingerprints) as fingerprints_db, \
+            LigandExpoDb(ligand_expo) as ligand_expo_db:
         pharmacophore_points = pharmacophores_db.points
         fingerprints_dict = fingerprints_db.as_dict(len(BIT_INFO))
+        ligand_expo_dict = ligand_expo_db.as_dict()
         for pdb_fn in pdbs:
                 pdb_fn = pdb_fn.strip()
                 try:
-                    generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, fuzzy_factor, fuzzy_shape, fragmentation)
+                    generate_from_pdb(pdb_fn, fragments_db, pharmacophore_points, fingerprints_dict, ligand_expo_dict, fuzzy_factor, fuzzy_shape, fragmentation)
                 except PdbDumpError:
                     msg = 'Unable to dump {0}, skipping'.format(pdb_fn)
                     click.secho(msg, bold=True)
