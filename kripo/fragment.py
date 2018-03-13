@@ -65,7 +65,9 @@ class Fragment:
         raise NotImplemented('Mapping of fragment atoms to pdb ligand atoms')
 
     def atom_positions(self) -> List[Tuple[float, float, float]]:
-        return self.molecule.GetConformer().GetPositions()
+        conf = self.molecule.GetConformer()
+        # Using conf.GetPositions gave segfault, so iterate over each atom
+        return [(p.x, p.y, p.z) for p in [conf.GetAtomPosition(i) for i in range(conf.GetNumAtoms())]]
 
     def site(self, radius=BINDING_SITE_RADIUS) -> Site:
         """Site of fragment
@@ -85,6 +87,7 @@ class Fragment:
             if is_residue_nearby(fragment_positions, residue, radius):
                 atoms_of_near_residues.update(residue.atoms())
 
+        # TODO construct atomium ligand for site from rdkit molecule based on coordinate+symbol mapping
         return Site(*atoms_of_near_residues)
 
     def nr_r_groups(self):

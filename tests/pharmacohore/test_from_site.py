@@ -692,7 +692,7 @@ residues = [
 
 @pytest.mark.parametrize("block,expected", residues)
 def test_from_site(block, expected, ligand_3heg_bax: Ligand):
-    site = prep_site(block, ligand_3heg_bax.molecule)
+    site = prep_site(block, ligand_3heg_bax.atomium_mol)
 
     features = from_site(site)
 
@@ -712,7 +712,7 @@ def dump_artificial_pdb_with_all_residues(all_res_site_pdb='all_res_site.pdb'):
     block = ""
     for residue in residues:
         block += residue.values[0]
-    site = prep_site(block, ligand.molecule)
+    site = prep_site(block, ligand.atomium_mol)
     block_with_ligand = site.ligand().model().to_file_string('pdb')
     with open(all_res_site_pdb, 'w') as f:
         f.write(block_with_ligand)
@@ -749,7 +749,7 @@ def dump4molviewer(filename='kripo-phar-molviewer.json'):
     for residue in residues:
         block = residue.values[0]
         features = residue.values[1]
-        site = prep_site(block, ligand.molecule)
+        site = prep_site(block, ligand.atomium_mol)
         label = site.residue().name() + str(len(list(site.residue().atoms())))
         row = {
             'id': label,

@@ -1,6 +1,7 @@
 import pytest
 
 from kripo.ligand import Ligand
+from kripo.ligandexpodb import LigandExpoDb
 from kripo.pdb import pdb_from_file, ligands
 
 
@@ -44,13 +45,18 @@ def pdb_2muv():
 
 
 @pytest.fixture(scope="module")
-def ligand_3heg_bax(pdb_3heg) -> Ligand:
-    return ligands(pdb_3heg)[0]
+def ligand_expo_db_fixture():
+    return LigandExpoDb('tests/fixtures/ligand-expo.db')
 
 
 @pytest.fixture(scope="module")
-def site_3heg_bax(ligand_3heg_bax: Ligand):
-    return ligand_3heg_bax.site()
+def ligand_expo_dict_fixture(ligand_expo_db_fixture):
+    return ligand_expo_db_fixture.as_dict()
+
+
+@pytest.fixture(scope="module")
+def ligand_3heg_bax(pdb_3heg, ligand_expo_dict_fixture) -> Ligand:
+    return ligands(pdb_3heg, ligand_expo_dict_fixture)[0]
 
 
 @pytest.fixture(scope="module")
@@ -64,6 +70,11 @@ def fragment1_3heg_bax(fragments_3heg_bax):
 
 
 @pytest.fixture(scope="module")
+def site_3heg_bax(fragment1_3heg_bax):
+    return fragment1_3heg_bax.site()
+
+
+@pytest.fixture(scope="module")
 def fragment2_3heg_bax(fragments_3heg_bax):
     return fragments_3heg_bax[1]
 
@@ -74,9 +85,9 @@ def fragment25_3heg_bax(fragments_3heg_bax):
 
 
 @pytest.fixture(scope="module")
-def yasara_fragment2_3heg_bax():
+def yasara_fragment2_3heg_bax(ligand_expo_dict_fixture):
     filename = 'tests/fixtures/3HEG.frag2.pdb'
     pdb = pdb_from_file(filename)
-    ligand = ligands(pdb)[0]
+    ligand = ligands(pdb, ligand_expo_dict_fixture)[0]
     frags = ligand.fragments()
     return frags[0]
