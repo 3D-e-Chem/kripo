@@ -7,6 +7,7 @@ from atomium.structures.chains import Site
 import pytest
 
 from kripo.ligand import Ligand
+from kripo.ligandexpodb import LigandExpoDb
 from kripo.pdb import pdb_from_file, ligands
 from kripo.pharmacophore import Feature, from_site
 from kripodb.pharmacophores import as_phar
@@ -745,7 +746,8 @@ def dump4molviewer(filename='kripo-phar-molviewer.json'):
 
     """
     rows = []
-    ligand = ligands(pdb_from_file('tests/fixtures/3HEG.prepped.pdb'))[0]
+    ligand_expo = LigandExpoDb('tests/fixtures/ligand-expo.db').as_dict()
+    ligand = ligands(pdb_from_file('tests/fixtures/3HEG.prepped.pdb'), ligand_expo)[0]
     for residue in residues:
         block = residue.values[0]
         features = residue.values[1]
