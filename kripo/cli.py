@@ -145,10 +145,14 @@ def import_ligands(ligandsdb, ligandssdf):
                 if cols[1] in UNWANTED_HETEROS:
                     click.secho('Unwanted ligand ' + cols[1] + ', skipping', fg='yellow')
                     continue
+                if mol.GetNumAtoms() == 0:
+                    click.secho('Molecule {0} contains no atoms, trying download'.format(mol_name), fg='yellow')
+                    db.cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (mol_name, 'zero_atoms'))
                 try:
                     SanitizeMol(mol)
                 except ValueError:
                     click.secho('Unable to sanitize ' + mol_name + ', skipping', fg='yellow')
+                    db.cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (mol_name, 'sanitize_error'))
                     continue
                 lig_id = cols[0] + '_' + cols[1] + '_' + cols[2] + '_' + cols[3] + '_' + cols[4]
                 try:

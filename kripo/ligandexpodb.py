@@ -12,6 +12,10 @@ class LigandExpoDb(SqliteDb):
             lig_id TEXT PRIMARY KEY,
             mol molblockgz
         )''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS corrupt_ligands (
+            lig_id TEXT PRIMARY KEY,
+            reason TEXT
+        )''')
 
     def as_dict(self):
         return LigandExpoDict(self.connection)
