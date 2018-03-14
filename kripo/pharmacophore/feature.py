@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 from ..fragment import Fragment
 from ..pdb import MAX_CONTACT_DISTANCE
 from .vector import distance_between_positions
@@ -28,22 +30,20 @@ class Feature:
         pos2 = other.position
         return distance_between_positions(pos1, pos2)
 
-    def in_contact_with(self, fragment: Fragment):
+    def in_contact_with(self, fragment_positions: List[Tuple[float, float, float]]):
         """Test whether feature is closer than MAX_CONTACT_DISTANCE to fragment
 
         Args:
-            fragment (Fragment): The fragment
+            fragment_positions : The fragment atom positions
 
         Returns:
             bool: True if feature is in contact with fragment.
         """
-        min_dist = 999
-        for a in fragment.atom_positions():
+        for a in fragment_positions:
             dist = distance_between_positions(self.position, a)
-            if dist < min_dist:
-                min_dist = dist
-
-        return min_dist < MAX_CONTACT_DISTANCE
+            if dist < MAX_CONTACT_DISTANCE:
+                return True
+        return False
 
     def __repr__(self) -> str:
         p = self.position

@@ -1,5 +1,5 @@
 from hashlib import md5
-from typing import Set, List, Tuple
+from typing import List, Set, Tuple
 
 from atomium.structures.chains import Site
 from atomium.structures.molecules import Molecule, Residue
@@ -9,6 +9,41 @@ from rdkit.Chem import Mol, MolToSmiles, RemoveHs
 
 """Residues within radius of ligand are site residues"""
 BINDING_SITE_RADIUS = 6
+
+
+def bounding_box(atoms: List[Tuple[float, float, float]]):
+    min_x = float('inf')
+    max_x = float('-inf')
+    min_y = float('inf')
+    max_y = float('-inf')
+    min_z = float('inf')
+    max_z = float('-inf')
+    if not atoms:
+        raise ValueError('List can not be empty')
+    for atom in atoms:
+        if atom[0] < min_x:
+            min_x = atom[0]
+        if atom[1] < min_y:
+            min_y = atom[1]
+        if atom[2] < min_z:
+            min_z = atom[2]
+        if atom[0] > max_x:
+            max_x = atom[0]
+        if atom[1] > max_y:
+            max_y = atom[1]
+        if atom[2] > max_z:
+            max_z = atom[2]
+
+    return (min_x, max_x), (min_y, max_y), (min_z, max_z)
+
+
+def bounding_boxes_overlap(fragment_bounding_box, radius, residue_bounding_box):
+    return fragment_bounding_box[0][0] - radius <= residue_bounding_box[0][1] and \
+           fragment_bounding_box[0][1] + radius >= residue_bounding_box[0][0] and \
+           fragment_bounding_box[1][0] - radius <= residue_bounding_box[1][1] and \
+           fragment_bounding_box[1][1] + radius >= residue_bounding_box[1][0] and \
+           fragment_bounding_box[2][0] - radius <= residue_bounding_box[2][1] and \
+           fragment_bounding_box[2][1] + radius >= residue_bounding_box[2][0]
 
 
 def distance_between_positions(pos1, pos2):
@@ -21,16 +56,21 @@ def distance_between_positions(pos1, pos2):
 
 
 def is_residue_nearby(fragment_positions: List[Tuple[float, float, float]], residue: Residue, radius: float) -> bool:
-    residue_atoms = residue.atoms()
-    min_distance = 9999.0
-    if radius > min_distance:
-        raise ValueError("Radius must be smaller than {0}".format(min_distance))
-    for fragment_position in fragment_positions:
-        for residue_atom in residue_atoms:
-                dist = distance_between_positions(fragment_position, residue_atom.location())
-                if dist < min_distance:
-                    min_distance = dist
-    return min_distance < radius
+    residue_positions = [a.location() for a in residue.atoms()]
+    residue_bounding_box = bounding_box(residue_positions)
+    fragment_bounding_box = bounding_box(fragment_positions)
+    if not bounding_boxes_overlap(fragment_bounding_box, radius, residue_bounding_box):
+        return False
+    square_radius = radius * radius
+    for fragment_atom_position in fragment_positions:
+        for residue_atom_position in residue_positions:
+            x = residue_atom_position[0] - fragment_atom_position[0]
+            y = residue_atom_position[1] - fragment_atom_position[1]
+            z = residue_atom_position[2] - fragment_atom_position[2]
+            dist = x * x + y * y + z * z
+            if dist < square_radius:
+                return True
+    return False
 
 
 class Fragment:

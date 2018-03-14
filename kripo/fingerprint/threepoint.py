@@ -99,10 +99,10 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1, fuzzy_shape='al
                 )]
                 distances.sort()
 
-                bit_info = distances[0][1] + distances[1][1] + distances[2][1]
-                bit_info += chr(distances[0][0] + 97)
-                bit_info += chr(distances[1][0] + 97)
-                bit_info += chr(distances[2][0] + 97)
+                bit_info = distances[0][1] + distances[1][1] + distances[2][1] \
+                    + chr(distances[0][0] + 97) \
+                    + chr(distances[1][0] + 97) \
+                    + chr(distances[2][0] + 97)
                 bit_index = BIT_INFO[bit_info]
                 bits.add(bit_index)
 
@@ -130,10 +130,10 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1, fuzzy_shape='al
 
                     fdistances.sort()
 
-                    bit_info = fdistances[0][1] + fdistances[1][1] + fdistances[2][1]
-                    bit_info += chr(fdistances[0][0] + 97)
-                    bit_info += chr(fdistances[1][0] + 97)
-                    bit_info += chr(fdistances[2][0] + 97)
+                    bit_info = fdistances[0][1] + fdistances[1][1] + fdistances[2][1] \
+                        + chr(fdistances[0][0] + 97) \
+                        + chr(fdistances[1][0] + 97) \
+                        + chr(fdistances[2][0] + 97)
                     bit_index = BIT_INFO[bit_info]
                     bits.add(bit_index)
 

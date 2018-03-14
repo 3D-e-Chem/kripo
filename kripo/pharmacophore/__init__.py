@@ -139,4 +139,5 @@ def filter_contact_features(fragment, features):
     Returns:
         Set[Feature]: Features which are in contact with fragment
     """
-    return {f for f in features if f.in_contact_with(fragment)}
+    fragment_positions = fragment.atom_positions()
+    return {f for f in features if f.in_contact_with(fragment_positions)}

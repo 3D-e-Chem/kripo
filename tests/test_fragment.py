@@ -2,7 +2,7 @@ import pytest
 
 from atomium.structures import Residue
 
-from kripo.fragment import Fragment, is_residue_nearby
+from kripo.fragment import Fragment, is_residue_nearby, bounding_box, bounding_boxes_overlap
 from kripo.ligand import Ligand
 from rdkit.Chem.rdmolfiles import MolToSmiles
 
@@ -245,17 +245,8 @@ def test_is_residue_nearby__nothing_in__false():
     fragment_atoms = []
     residue = Residue()
     radius = 6.0
-    assert not is_residue_nearby(fragment_atoms, residue, radius)
-
-
-def test_is_residue_nearby__radiustoobig_valueerror():
-    fragment_atoms = []
-    residue = Residue()
-    radius = 999999999.0
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError):
         is_residue_nearby(fragment_atoms, residue, radius)
-
-    assert 'Radius must be smaller than' in str(excinfo.value)
 
 
 def test_smiles(fragment1_3heg_bax: Fragment):
@@ -271,3 +262,85 @@ def test_unprotonated_molecule(fragment1_3heg_bax: Fragment):
 
     expected = 'CNC(=O)c1cc(Oc2ccc(NC(=O)Nc3ccc(Cl)c(C(F)(F)F)c3)cc2)ccn1'
     assert MolToSmiles(mol) == expected
+
+
+@pytest.mark.parametrize(('res', 'expected_overlaps'), (
+    (((-1, 0), (-1, 0), (-1, 0)), True),  # same
+    (((-.75, -0.25), (-.75, -.25), (-.75, -0.25)), True),  # inside
+    (((-3, 2), (-3, 2), (-3, 2)), True),  # inside radius
+    (((-10, 9), (-10, 9), (-10, 9)), True),  # frag inside res
+    (((6, 7), (-1, 0), (-1, 0)), False),  # side x
+    (((-1, 0), (6, 7), (-1, 0)), False),  # side y
+    (((-1, 0), (-1, 0), (6, 7)), False),  # side z
+    (((-6, -7), (-1, 0), (-1, 0)), False),  # side -x
+    (((-1, 0), (-6, -7), (-1, 0)), False),  # side -y
+    (((-1, 0), (-1, 0), (-6, -7)), False),  # side -z
+    (((3, 6), (3, 6), (3, 6)), True),  # corner
+    (((3, 6), (3, 6), (-7, -4)), True),  # corner
+    (((3, 6), (-7, -4), (3, 6)), True),  # corner
+    (((-7, -4), (3, 6), (3, 6)), True),  # corner
+    (((-7, -4), (-7, -4), (3, 6)), True),  # corner
+    (((-7, -4), (-7, -4), (-7, -4)), True),  # corner
+    (((3, 6), (-7, -4), (-7, -4)), True),  # corner
+    (((-7, -4), (3, 6), (-7, -4)), True),  # corner
+    (((-2, 1), (3, 6), (3, 6)), True),  # edge
+    (((3, 6), (-2, 1), (3, 6)), True),  # edge
+    (((3, 6), (3, 6), (-2, 1)), True),  # edge
+    (((-2, 1), (-7, -4), (-7, -4)), True),  # edge
+    (((-7, -4), (-2, 1), (-7, -4)), True),  # edge
+    (((-7, -4), (-7, -4), (-2, 1)), True),  # edge
+    (((-2, 1), (-2, 1), (-7, -4)), True),  # side
+    (((-2, 1), (-7, -4), (-2, 1)), True),  # side
+    (((-7, -4), (-2, 1), (-2, 1)), True),  # side
+    (((-17, -14), (-2, 1), (-2, 1)), False),  # out side
+))
+def test_bounding_boxes_overlap(res, expected_overlaps):
+    frag = ((-1, 0), (-1, 0), (-1, 0))
+
+    overlaps = bounding_boxes_overlap(frag, 5.0, res)
+    assert overlaps == expected_overlaps
+
+
+@pytest.mark.parametrize(('atoms', 'expected_bb',), (
+    (
+        (
+            (0.0, 0.0, 0.0),
+        ),
+        (
+            (0.0, 0.0),
+            (0.0, 0.0),
+            (0.0, 0.0),
+        ),
+    ), (
+        (
+            (0.0, 0.0, 0.0),
+            (1.0, 1.0, 1.0),
+        ),
+        (
+            (0.0, 1.0),
+            (0.0, 1.0),
+            (0.0, 1.0),
+        ),
+    ), (
+        (
+            (1.0, 1.0, 1.0),
+            (0.0, 0.0, 0.0),
+        ),
+        (
+            (0.0, 1.0),
+            (0.0, 1.0),
+            (0.0, 1.0),
+        ),
+    ),
+))
+def test_bounding_box(atoms, expected_bb):
+    bb = bounding_box(atoms)
+
+    assert bb == expected_bb
+
+
+def test_bounding_box_zero_atoms_value_error():
+    atoms = list()
+
+    with pytest.raises(ValueError):
+        bounding_box(atoms)
