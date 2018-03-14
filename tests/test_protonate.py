@@ -3,7 +3,7 @@ from atomium.files.pdbdict2pdb import pdb_dict_to_pdb
 from atomium.structures import Model
 
 from kripo.pdb import Pdb, pdb_from_file, ligands
-from kripo.protonate import protonate_protein, protonate_ligand, protonate
+from kripo.protonate import protonate_protein, protonate_ligand, protonate_pdb
 
 
 def test_protonate_protein(orig_pdb_3heg: Pdb):
@@ -34,25 +34,25 @@ def test_protonate_ligand(orig_pdb_3heg: Pdb):
 
 
 def test_protonate_pdb_3heg(orig_pdb_3heg: Pdb):
-    protonated = protonate(orig_pdb_3heg)
+    protonated = protonate_pdb(orig_pdb_3heg)
     assert len(protonated.model().atoms(element='H')) == 2936
 
 
 def test_protonate_pdb_3rze():
     unprotonated = pdb_from_file('tests/fixtures/3RZE.pdb', hydrogenate=False, clean=False)
-    protonated = protonate(unprotonated)
+    protonated = protonate_pdb(unprotonated)
     assert len(protonated.model().atoms(element='H')) == 3655
 
 
 def test_protonate_pdb_5is0():
     unprotonated = pdb_from_file('tests/fixtures/5IS0.pdb', hydrogenate=False, clean=False)
-    protonated = protonate(unprotonated)
+    protonated = protonate_pdb(unprotonated)
     assert len(protonated.model().atoms(element='H')) == 11072
 
 
 def test_protonate_pdb_2muv():
     unprotonated = pdb_from_file('tests/fixtures/2MUV.pdb', hydrogenate=False, clean=False)
-    protonated = protonate(unprotonated)
+    protonated = protonate_pdb(unprotonated)
     assert len(protonated.model().atoms(element='H')) == 982
 
 

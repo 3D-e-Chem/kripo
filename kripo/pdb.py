@@ -8,7 +8,7 @@ from atomium.files.pdb import Pdb
 from rdkit.Chem import Mol
 
 from .ligand import Ligand
-from .protonate import protonate, protonate_molecule
+from .protonate import protonate_pdb, protonate_molecule
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +118,7 @@ def pdb_from_atomium_pdb(pdb: Pdb, hydrogenate=True, clean=True) -> Pdb:
         remove_unwanted_molecules(pdb)
     if hydrogenate:
         try:
-            pdb = protonate(pdb, het=False)
+            pdb = protonate_pdb(pdb)
         except TypeError as e:
             raise PdbDumpError(pdb) from e
     if clean:
