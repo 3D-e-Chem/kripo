@@ -45,24 +45,54 @@ class Fragment:
         self.parent = parent
         self.molecule = molecule
 
-    def atom_names(self, include_hydrogen=True):
+    def atom_names(self):
         """Ligand atom names which make up the fragment
 
-        Excludes hydrogens
+        Excludes hydrogens and R groups
 
         Returns:
             List[str]: Atom names
 
         """
-        raise NotImplemented('Mapping of fragment atoms to pdb ligand atoms')
+        return [a.name() for a in self.atoms()]
 
     def atoms(self) -> Set[Atom]:
         """Atoms of fragment
 
+        Excludes hydrogens and R groups
+
         Returns:
             collection of atoms
         """
-        raise NotImplemented('Mapping of fragment atoms to pdb ligand atoms')
+        theset = set()
+        conf = self.molecule.GetConformer()
+        ignored_symbols = {'H', '*'}
+        delta = 0.002
+        for a in self.molecule.GetAtoms():
+            if a.GetSymbol() in ignored_symbols:
+                continue
+
+            frag_symbol = a.GetSymbol().upper()
+            p = conf.GetAtomPosition(a.GetIdx())
+            frag_loc = (p.x, p.y, p.z)
+
+            # Find fragment atom in whole ligand aka parent based on symbol and position
+            for parent_atom in self.parent.atoms():
+                if parent_atom in theset:
+                    continue
+                if parent_atom.element() != frag_symbol:
+                    continue
+                parent_loc = parent_atom.location()
+                if all((
+                    abs(parent_loc[0] - frag_loc[0]) < delta,
+                    abs(parent_loc[1] - frag_loc[1]) < delta,
+                    abs(parent_loc[2] - frag_loc[2]) < delta,
+                )):
+                    # Match found
+                    theset.add(parent_atom)
+                    break
+
+        return theset
 
     def atom_positions(self) -> List[Tuple[float, float, float]]:
         conf = self.molecule.GetConformer()
@@ -87,8 +117,9 @@ class Fragment:
             if is_residue_nearby(fragment_positions, residue, radius):
                 atoms_of_near_residues.update(residue.atoms())
 
-        # TODO construct atomium ligand for site from rdkit molecule based on coordinate+symbol mapping
-        return Site(*atoms_of_near_residues)
+        name = 'fragment of ' + self.parent.name()
+        ligand = Molecule(*self.atoms(), name=name)
+        return Site(*atoms_of_near_residues, ligand=ligand)
 
     def nr_r_groups(self):
         """Number of R groups in fragment

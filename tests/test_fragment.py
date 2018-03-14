@@ -40,7 +40,6 @@ def test_atom_names__when_fragment_is_whole_ligand(fragment1_3heg_bax: Fragment)
         'F10',
         'F8',
         'F9',
-        'H',
         'N12',
         'N14',
         'N26',
@@ -69,6 +68,7 @@ def test_atom_names__when_fragment_is_part_ofligand(fragment2_3heg_bax: Fragment
         'C23',
         'C24',
         'C25',
+        'C27',
         'C28',
         'C3',
         'C4',
@@ -79,7 +79,6 @@ def test_atom_names__when_fragment_is_part_ofligand(fragment2_3heg_bax: Fragment
         'F10',
         'F8',
         'F9',
-        'H',
         'N12',
         'N14',
         'N26',
@@ -90,10 +89,10 @@ def test_atom_names__when_fragment_is_part_ofligand(fragment2_3heg_bax: Fragment
     assert names == expected
 
 
-def test_atom_names__exclude_hydrogens(fragment25_3heg_bax: Fragment):
-    names = set(fragment25_3heg_bax.atom_names(include_hydrogen=False))
+def test_atom_names__of_small_fragment(fragment25_3heg_bax: Fragment):
+    names = set(fragment25_3heg_bax.atom_names())
 
-    expected = {'O32', 'N30', 'C31'}
+    expected = {'O32', 'N30', 'C29', 'C31'}
 
     assert names == expected
 
@@ -105,10 +104,9 @@ def seq_nrs_of_site(site, chain='A'):
 def test_site__fragment2_3heg_bax(fragment2_3heg_bax: Fragment):
     site = fragment2_3heg_bax.site()
 
-    # TODO define ligand
-    # site_ligand = site.ligand()
-    # assert len(site_ligand.atoms()) == 43
-    # assert site_ligand.name() == 'BAX'
+    site_ligand = site.ligand()
+    assert len(site_ligand.atoms()) == 28
+    assert site_ligand.name() == 'fragment of BAX'
     seq_nrs = seq_nrs_of_site(site)
     expected = {
         30,
@@ -244,14 +242,14 @@ def test_get_name(fragment1_3heg_bax: Fragment):
 
 
 def test_is_residue_nearby__nothing_in__false():
-    fragment_atoms = set()
+    fragment_atoms = []
     residue = Residue()
     radius = 6.0
     assert not is_residue_nearby(fragment_atoms, residue, radius)
 
 
 def test_is_residue_nearby__radiustoobig_valueerror():
-    fragment_atoms = set()
+    fragment_atoms = []
     residue = Residue()
     radius = 999999999.0
     with pytest.raises(ValueError) as excinfo:

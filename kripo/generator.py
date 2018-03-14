@@ -104,9 +104,7 @@ def add_fragment2db(thepdb, ligand: Ligand, frag_nr, fragment: Fragment, fragmen
     # A site can be in different chains, take the chain most residues belong to
     prot_chain = chain_of_site(fragment.site())
     hash_code = fragment.hash_code()
-    # TODO implement atom_names
-    atom_codes = ''
-    # atom_codes = ','.join(fragment.atom_names(include_hydrogen=False))
+    atom_codes = ','.join(sorted(fragment.atom_names()))
     nr_r_groups = fragment.nr_r_groups()
 
     fragments_db.add_fragment(

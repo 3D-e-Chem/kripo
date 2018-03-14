@@ -18,7 +18,7 @@ def test_add_fragment2db(pdb_3heg, ligand_3heg_bax, fragment25_3heg_bax):
     assert MolToSmiles(row['mol']) == '[*]C(=O)NC'
     del row['mol']  # ignore molecule, assert based on smile above
     expected_row = {
-        'atom_codes': 'N30,O32,C31',
+        'atom_codes': 'C29,C31,N30,O32',
         'ec_number': None,
         'frag_id': '3heg_BAX_frag25',
         'frag_nr': 25,
