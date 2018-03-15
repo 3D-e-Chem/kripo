@@ -5,6 +5,7 @@ import gzip
 from sqlite3 import IntegrityError
 
 import click
+import requests
 
 from kripodb.db import FingerprintsDb, FragmentsDb, FastInserter
 from kripodb.pharmacophores import PharmacophoresDb
@@ -146,7 +147,7 @@ def import_ligands(ligandsdb, ligandssdf):
                     click.secho('Unwanted ligand ' + cols[1] + ', skipping', fg='yellow')
                     continue
                 if mol.GetNumAtoms() == 0:
-                    click.secho('Molecule {0} contains no atoms, trying download'.format(mol_name), fg='yellow')
+                    click.secho('Molecule {0} contains no atoms, skipping'.format(mol_name), fg='yellow')
                     db.cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (mol_name, 'zero_atoms'))
                 try:
                     SanitizeMol(mol)
@@ -159,3 +160,27 @@ def import_ligands(ligandsdb, ligandssdf):
                     cursor.execute('INSERT INTO ligands VALUES (?, ?)', (lig_id, mol,))
                 except IntegrityError:
                     click.secho('Duplicate ' + mol_name + ', skipping', fg='yellow')
+
+
+def fetch_ligand_sdf(hets, pdbs):
+    url = 'https://www.rcsb.org/pdb/download/downloadLigandFiles.do?ligandIdList={0}&amp;structIdList={1}&instanceType=all&excludeUnobserved=false&includeHydrogens=false'.format(','.join(hets), ','.join(pdbs))
+    response = requests.get(url)
+
+
+@ligands_group.command('resolve')
+@click.argument('ligandsdb', type=click.Path(dir_okay=False, writable=True))
+def resolve_corrupt_ligands(ligandsdb):
+    """The ligand expo sdf contains molecules with zero atoms and molecules which fail the RDKit sanitization
+
+    This command tries alternative ways to find a better version
+    """
+    with LigandExpoDb(ligandsdb) as db:
+        ids2fetch = {}
+        for mol_name in db.execute('SELECT lig_id FROM corrupt_ligands WHERE reason=?', ('zero_atom',)):
+            cols = mol_name.split('_')
+            pdb_code = cols[0]
+            het_code = cols[1]
+            if het_code in ids2fetch:
+                ids2fetch[het_code].append(pdb_code)
+            else:
+                ids2fetch[het_code] = [pdb_code]
