@@ -160,6 +160,7 @@ def import_ligands(ligandsdb, ligandssdf):
                     else:
                         ids2fetch[het_code] = [pdb_code]
                     click.secho('Molecule {0} contains no atoms, fetching from alternate download'.format(lig_id), fg='yellow')
+                    continue
                 try:
                     SanitizeMol(mol)
                 except ValueError:
@@ -177,29 +178,35 @@ def import_ligands(ligandsdb, ligandssdf):
                 hets.append(het)
                 pdbs.extend(het_pdbs)
                 if 3 * len(hets) + 4 * len(pdbs) > 200:
-                    for mol in fetch_ligand_sdf(hets, pdbs):
-                        mol_name = mol.GetProp('_Name')
-                        # '2ZFS_12U_A_501'
-                        cols = mol_name.split('_')
-                        lig_id = cols[0].lower() + '_' + cols[1] + '_1_' + cols[2] + '_' + cols[3]
-                        if mol.GetNumAtoms() == 0:
-                            click.secho('Molecule {0} contains no atoms, skipping'.format(lig_id), fg='yellow')
-                            cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (lig_id, 'zero_atoms'))
-                        try:
-                            SanitizeMol(mol)
-                        except ValueError:
-                            click.secho('Unable to sanitize ' + lig_id + ', skipping', fg='yellow')
-                            try:
-                                cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (lig_id, 'sanitize_error'))
-                            except IntegrityError:
-                                pass
-                            continue
-                        try:
-                            cursor.execute('INSERT INTO ligands VALUES (?, ?)', (lig_id, mol,))
-                        except IntegrityError:
-                            click.secho('Duplicate ' + lig_id + ', skipping', fg='yellow')
+                    fetch_chunk(cursor, hets, pdbs)
                     hets = []
                     pdbs = []
+            if hets:
+                fetch_chunk(cursor, hets, pdbs)
+
+
+def fetch_chunk(cursor, hets, pdbs):
+    for mol in fetch_ligand_sdf(hets, pdbs):
+        mol_name = mol.GetProp('_Name')
+        # '2ZFS_12U_A_501'
+        cols = mol_name.split('_')
+        lig_id = cols[0].lower() + '_' + cols[1] + '_1_' + cols[2] + '_' + cols[3]
+        if mol.GetNumAtoms() == 0:
+            click.secho('Molecule {0} contains no atoms, skipping'.format(lig_id), fg='yellow')
+            cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (lig_id, 'zero_atoms'))
+            continue
+        try:
+            SanitizeMol(mol)
+        except ValueError:
+            click.secho('Unable to sanitize ' + lig_id + ', skipping', fg='yellow')
+            try:
+                cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (lig_id, 'sanitize_error'))
+            except IntegrityError:
+                continue
+        try:
+            cursor.execute('INSERT INTO ligands VALUES (?, ?)', (lig_id, mol,))
+        except IntegrityError:
+            click.secho('Duplicate ' + lig_id + ', skipping', fg='yellow')
 
 
 def fetch_ligand_sdf(hets, pdbs):
