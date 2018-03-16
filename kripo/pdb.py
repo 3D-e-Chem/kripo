@@ -17,6 +17,7 @@ UNWANTED_HETEROS = {
     # REMOVE SOLVENTS, METALS AND ALT LOCATIONS
     'MG', 'K', 'MN', 'NA', 'ZN', 'MG', 'CA', 'CD', 'HG', 'FE', 'CL', 'CU', '4MO', 'AU', 'IOD', 'SM', 'AF3', 'MOO',
     'HOH', 'ACE', 'DTT', 'SO4', 'PO3', 'PO4', 'MG8', 'BU3', 'GOL', 'DMS', 'FMT', 'LPA', 'F3S', 'ACE', 'NH2', 'CO',
+    'F', 'XE', 'BR',
     # HEM as seed
     'EDO',
     '1FH', '2FH', 'CCH', 'CLN', 'COH', 'DDH', 'DEU', 'DHE', 'FDD', 'FDE', 'FEC', 'FMI', 'HAS', 'HE6',

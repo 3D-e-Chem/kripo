@@ -2,6 +2,7 @@
 
 """Console script for kripo."""
 import gzip
+from io import BytesIO
 from sqlite3 import IntegrityError
 
 import click
@@ -131,11 +132,15 @@ def import_ligands(ligandsdb, ligandssdf):
 
     On http://ligand-expo.rcsb.org/ld-download.html download http://ligand-expo.rcsb.org/dictionaries/all-sdf.sdf.gz
     and use as LIGANDSSDF
+
+
+    Any ligand with zero atoms is downloaded from https://www.rcsb.org/pdb/download/downloadLigandFiles.do
     """
     sdf_fn = gzip.open(ligandssdf)
     gzsuppl = ForwardSDMolSupplier(sdf_fn, sanitize=False, removeHs=False)
     with LigandExpoDb(ligandsdb) as db:
         cursor = db.cursor
+        ids2fetch = {}
         with FastInserter(cursor):
             for mol in gzsuppl:
                 if mol is None:
@@ -146,41 +151,70 @@ def import_ligands(ligandsdb, ligandssdf):
                 if cols[1] in UNWANTED_HETEROS:
                     click.secho('Unwanted ligand ' + cols[1] + ', skipping', fg='yellow')
                     continue
+                pdb_code = cols[0]
+                het_code = cols[1]
+                lig_id = pdb_code + '_' + het_code + '_' + cols[2] + '_' + cols[3] + '_' + cols[4]
                 if mol.GetNumAtoms() == 0:
-                    click.secho('Molecule {0} contains no atoms, skipping'.format(mol_name), fg='yellow')
-                    db.cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (mol_name, 'zero_atoms'))
+                    if het_code in ids2fetch:
+                        ids2fetch[het_code].append(pdb_code)
+                    else:
+                        ids2fetch[het_code] = [pdb_code]
+                    click.secho('Molecule {0} contains no atoms, fetching from alternate download'.format(lig_id), fg='yellow')
                 try:
                     SanitizeMol(mol)
                 except ValueError:
-                    click.secho('Unable to sanitize ' + mol_name + ', skipping', fg='yellow')
-                    db.cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (mol_name, 'sanitize_error'))
+                    click.secho('Unable to sanitize ' + lig_id + ', skipping', fg='yellow')
+                    cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (lig_id, 'sanitize_error'))
                     continue
-                lig_id = cols[0] + '_' + cols[1] + '_' + cols[2] + '_' + cols[3] + '_' + cols[4]
                 try:
                     cursor.execute('INSERT INTO ligands VALUES (?, ?)', (lig_id, mol,))
                 except IntegrityError:
-                    click.secho('Duplicate ' + mol_name + ', skipping', fg='yellow')
+                    click.secho('Duplicate ' + lig_id + ', skipping', fg='yellow')
+            click.secho('Downloading sdf of molecules with no atoms from alternate location')
+            hets = []
+            pdbs = []
+            for het, het_pdbs in sorted(ids2fetch.items(), key=lambda d: len(d[1]), reverse=True):
+                hets.append(het)
+                pdbs.extend(het_pdbs)
+                if 3 * len(hets) + 4 * len(pdbs) > 200:
+                    for mol in fetch_ligand_sdf(hets, pdbs):
+                        mol_name = mol.GetProp('_Name')
+                        # '2ZFS_12U_A_501'
+                        cols = mol_name.split('_')
+                        lig_id = cols[0].lower() + '_' + cols[1] + '_1_' + cols[2] + '_' + cols[3]
+                        if mol.GetNumAtoms() == 0:
+                            click.secho('Molecule {0} contains no atoms, skipping'.format(lig_id), fg='yellow')
+                            cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (lig_id, 'zero_atoms'))
+                        try:
+                            SanitizeMol(mol)
+                        except ValueError:
+                            click.secho('Unable to sanitize ' + lig_id + ', skipping', fg='yellow')
+                            try:
+                                cursor.execute('INSERT INTO corrupt_ligands VALUES (?, ?)', (lig_id, 'sanitize_error'))
+                            except IntegrityError:
+                                pass
+                            continue
+                        try:
+                            cursor.execute('INSERT INTO ligands VALUES (?, ?)', (lig_id, mol,))
+                        except IntegrityError:
+                            click.secho('Duplicate ' + lig_id + ', skipping', fg='yellow')
+                    hets = []
+                    pdbs = []
 
 
 def fetch_ligand_sdf(hets, pdbs):
-    url = 'https://www.rcsb.org/pdb/download/downloadLigandFiles.do?ligandIdList={0}&amp;structIdList={1}&instanceType=all&excludeUnobserved=false&includeHydrogens=false'.format(','.join(hets), ','.join(pdbs))
-    response = requests.get(url)
-
-
-@ligands_group.command('resolve')
-@click.argument('ligandsdb', type=click.Path(dir_okay=False, writable=True))
-def resolve_corrupt_ligands(ligandsdb):
-    """The ligand expo sdf contains molecules with zero atoms and molecules which fail the RDKit sanitization
-
-    This command tries alternative ways to find a better version
-    """
-    with LigandExpoDb(ligandsdb) as db:
-        ids2fetch = {}
-        for mol_name in db.execute('SELECT lig_id FROM corrupt_ligands WHERE reason=?', ('zero_atom',)):
-            cols = mol_name.split('_')
-            pdb_code = cols[0]
-            het_code = cols[1]
-            if het_code in ids2fetch:
-                ids2fetch[het_code].append(pdb_code)
-            else:
-                ids2fetch[het_code] = [pdb_code]
+    params = {
+        'ligandIdList': ','.join(hets),
+        'structIdList':  ','.join(pdbs),
+        'instanceType': 'all',
+        'excludeUnobserved': 'false',
+        'includeHydrogens': 'true',
+    }
+    url = 'https://www.rcsb.org/pdb/download/downloadLigandFiles.do'
+    response = requests.get(url, params=params)
+    sdf_fn = BytesIO(response.content)
+    gzsuppl = ForwardSDMolSupplier(sdf_fn, sanitize=False, removeHs=False)
+    for mol in gzsuppl:
+        if mol is None:
+            continue
+        yield mol
