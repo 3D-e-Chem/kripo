@@ -1,9 +1,9 @@
 from atomium.files.pdbstring2pdbdict import pdb_string_to_pdb_dict
 from atomium.files.pdbdict2pdb import pdb_dict_to_pdb
-from atomium.structures import Model
+from rdkit.Chem import Mol
 
-from kripo.pdb import Pdb, pdb_from_file, ligands
-from kripo.protonate import protonate_protein, protonate_ligand, protonate_pdb
+from kripo.pdb import Pdb, pdb_from_file
+from kripo.protonate import protonate_protein, protonate_molecule, protonate_pdb
 
 
 def test_protonate_protein(orig_pdb_3heg: Pdb):
@@ -17,31 +17,29 @@ def test_protonate_protein(orig_pdb_3heg: Pdb):
     assert len(hpdb.model().chain('A').atoms(element='H')) == 2702
 
 
-def test_protonate_ligand(orig_pdb_3heg: Pdb):
-    # Create model which only contains ligand molecules
-    ligands_model = Model()
-    bax = orig_pdb_3heg.model().molecule(name='BAX')
-    ligands_model.add_molecule(bax)
-    block = ligands_model.to_file_string('pdb')
+def nr_hydrogens(mol: Mol):
+    return mol.GetNumAtoms() - mol.GetNumHeavyAtoms()
+
+
+def test_protonate_molecule(ligand_expo_dict_fixture):
+    mol = ligand_expo_dict_fixture['3heg_BAX_1_A_1']
     # Verify input contains no hydrogens
-    assert len(ligands_model.atoms(element='H')) == 0
+    assert nr_hydrogens(mol) == 0, 'Contains no hydrogens before protonation'
 
-    hblock = protonate_ligand(block)
+    hmol = protonate_molecule(mol)
 
-    hpdb = pdb_string2pdb(hblock)
-    hmodel = hpdb.model()
-    assert len(hmodel.atoms(element='H')) == 16
+    assert nr_hydrogens(hmol) == 16
 
 
 def test_protonate_pdb_3heg(orig_pdb_3heg: Pdb):
     protonated = protonate_pdb(orig_pdb_3heg)
-    assert len(protonated.model().atoms(element='H')) == 2936
+    assert len(protonated.model().atoms(element='H')) == 2702
 
 
 def test_protonate_pdb_3rze():
     unprotonated = pdb_from_file('tests/fixtures/3RZE.pdb', hydrogenate=False, clean=False)
     protonated = protonate_pdb(unprotonated)
-    assert len(protonated.model().atoms(element='H')) == 3655
+    assert len(protonated.model().atoms(element='H')) == 3574
 
 
 def test_protonate_pdb_5is0():
