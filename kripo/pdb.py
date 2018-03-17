@@ -193,4 +193,5 @@ def ligand_contacts_protein(ligand: Molecule, model: Model) -> bool:
                 ndist = latom.distance_to(patom)
                 if ndist < dist:
                     dist = ndist
-    return dist < MAX_CONTACT_DISTANCE
+    # Added 1 angstrom because ligand is not protonated
+    return dist < MAX_CONTACT_DISTANCE + 1
