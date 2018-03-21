@@ -37,13 +37,21 @@ It uses https://github.com/3D-e-Chem/kripodb to store output in database files.
 Usage
 -----
 
+The ligands in PDB files have no bond information so we use the ligand expo for this.
+The ligand expo sdf file must be downloaded and indexed using:
+
+.. code-block:: bash
+
+    wget http://ligand-expo.rcsb.org/dictionaries/all-sdf.sdf.gz
+    kripo ligands import all-sdf.sdf.gz ligand-expo.db
+
 To generate pharmacophore fingerprints from 2 pdb files use:
 
 .. code-block:: bash
 
     echo tests/fixtures/3HEG.pdb > pdb.list
     echo tests/fixtures/5IS0.pdb >> pdb.list
-    kripo generate pdb.list frags.db phars.h5 fingerprints.db
+    kripo generate --ligand-expo ligand-expo.db pdb.list frags.db phars.h5 fingerprints.db
 
 This will generate Kripo fragments/pharmacophores/fingerprints for the PDB files listed in the `pdb.list` file.
 
