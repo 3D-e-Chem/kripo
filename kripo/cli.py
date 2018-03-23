@@ -90,12 +90,12 @@ def pharmacophores_group():
 @pharmacophores_group.command(name='fingerprints')
 @click.argument('pharmacophores', type=click.Path(dir_okay=False))
 @click.argument('fingerprints', type=click.Path(dir_okay=False, writable=True))
-@click.option('--fuzzy_factor',
+@click.option('--fuzzy-factor',
               type=int,
               help='Number of bins below/above actual bin to include in fingerprint',
               default=1,
               show_default=True)
-@click.option('--fuzzy_shape',
+@click.option('--fuzzy-shape',
               type=click.Choice(('all', 'one', 'v1')),
               help='Shape of bins around actual bin',
               default='all',
