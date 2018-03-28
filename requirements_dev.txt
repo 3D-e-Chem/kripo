@@ -13,3 +13,5 @@ sphinx_autodoc_typehints==1.2.3
 pytest==3.2.3
 pytest-runner==3.0
 pytest-cov==2.5.1
+
+-e .
