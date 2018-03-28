@@ -1,6 +1,6 @@
 import pytest
 
-from intbitset import intbitset
+from pyroaring import BitMap
 import numpy as np
 
 from kripo.fingerprint.threepoint import from_pharmacophore, BINS
@@ -22,7 +22,7 @@ zero_point_phars = [
     pytest.param(
         Pharmacophore([
         ]),
-        intbitset([]),
+        BitMap([]),
         id='zero features'
     )
 ]
@@ -30,32 +30,32 @@ zero_point_phars = [
 single_point_phars = [
     pytest.param(
         Pharmacophore([Feature('LIPO', (0.0, 0.0, 0.0))]),
-        intbitset([2]),
+        BitMap([2]),
         id='LIPO'
     ),
     pytest.param(
         Pharmacophore([Feature('POSC', (0.0, 0.0, 0.0))]),
-        intbitset([5]),
+        BitMap([5]),
         id='POSC'
     ),
     pytest.param(
         Pharmacophore([Feature('NEGC', (0.0, 0.0, 0.0))]),
-        intbitset([3]),
+        BitMap([3]),
         id='NEGC'
     ),
     pytest.param(
         Pharmacophore([Feature('HACC', (0.0, 0.0, 0.0))]),
-        intbitset([1]),
+        BitMap([1]),
         id='HACC'
     ),
     pytest.param(
         Pharmacophore([Feature('HDON', (0.0, 0.0, 0.0))]),
-        intbitset([4]),
+        BitMap([4]),
         id='HDON'
     ),
     pytest.param(
         Pharmacophore([Feature('AROM', (0.0, 0.0, 0.0))]),
-        intbitset([6]),
+        BitMap([6]),
         id='AROM'
     ),
 ]
@@ -66,7 +66,7 @@ double_point_phars = [
             Feature('LIPO', (0.0, 0.0, 0.0)),
             Feature('AROM', (1.0, 0.0, 0.0))
         ]),
-        intbitset([2, 6, 257, 258, 259]),
+        BitMap([2, 6, 257, 258, 259]),
         id='LIPO-AROM-dist=1'
     ),
     pytest.param(
@@ -74,7 +74,7 @@ double_point_phars = [
             Feature('LIPO', (0.0, 0.0, 0.0)),
             Feature('AROM', (2.0, 0.0, 0.0))
         ]),
-        intbitset([2, 6, 258, 259, 260]),
+        BitMap([2, 6, 258, 259, 260]),
         id='LIPO-AROM-dist=2'
     ),
     pytest.param(
@@ -82,7 +82,7 @@ double_point_phars = [
             Feature('LIPO', (0.0, 0.0, 0.0)),
             Feature('AROM', (3.0, 0.0, 0.0))
         ]),
-        intbitset([2, 6, 259, 260, 261]),
+        BitMap([2, 6, 259, 260, 261]),
         id='LIPO-AROM-dist=3'
     ),
     pytest.param(
@@ -90,7 +90,7 @@ double_point_phars = [
             Feature('LIPO', (0.0, 0.0, 0.0)),
             Feature('AROM', (4.0, 0.0, 0.0))
         ]),
-        intbitset([2, 6, 261, 262, 263]),
+        BitMap([2, 6, 261, 262, 263]),
         id='LIPO-AROM-dist=4'
     ),
     pytest.param(
@@ -98,7 +98,7 @@ double_point_phars = [
             Feature('LIPO', (0.0, 0.0, 0.0)),
             Feature('AROM', (100.0, 0.0, 0.0))
         ]),
-        intbitset([2, 6, 276, 277]),
+        BitMap([2, 6, 276, 277]),
         id='LIPO-AROM-dist=100'
     ),
 ]
@@ -110,7 +110,7 @@ triple_point_phars = [
             Feature('LIPO', (1.0, 0.0, 0.0)),
             Feature('AROM', (5.0, 0.0, 0.0))
         ]),
-        intbitset([
+        BitMap([
             2, 4, 6, 207, 208, 209, 261, 262, 263, 437, 438, 439, 506597, 506598, 506617, 506873, 506874, 506893,
             507126, 507127, 507146, 531673, 531674, 531675, 531693, 531694, 531712, 531926, 531927, 531928, 531946,
             531947, 531965, 532157, 532158, 532159, 532177, 532178, 532196
@@ -126,7 +126,7 @@ real_phars = [
             Feature('HACC', (5.1451, -26.3654, -19.8650)),
             Feature('LIPO', (8.2964, -25.1876, -19.6532)),
         ]),
-        intbitset([
+        BitMap([
             1, 2, 4, 35, 36, 37, 86, 87, 88, 214, 215, 216, 151744, 151745, 151746, 151763, 151764, 151765, 151953,
             151954, 151955, 312344, 312345, 312346, 312363, 312364, 312365, 312381, 312382, 312383, 312553, 312554,
             312555, 312571, 312572, 312573, 312742, 312743, 312744
@@ -141,7 +141,7 @@ real_phars = [
             Feature('LIPO', (-4.3778, 0.0278, 30.1472)),
             Feature('LIPO', (-4.4496, -1.8999, 26.3564)),
         ]),
-        intbitset([
+        BitMap([
             2, 159, 160, 161, 162, 163, 164, 165, 119783, 119784, 119785, 119805, 119806, 119807, 119827, 119828,
             119829, 119830, 119831, 119848, 119849, 119850, 119851, 119868, 119869, 119870, 119887, 119888, 120058,
             120059, 120060, 120080, 120081, 120082, 120083, 120084, 120101, 120102, 120103, 120104, 120121, 120122,
@@ -156,7 +156,7 @@ real_phars = [
             Feature('LIPO', (104.4201, 94.1307, 93.9420)),
             Feature('LIPO', (103.5509, 96.8359, 92.5697)),
         ]),
-        intbitset([
+        BitMap([
             2, 159, 160, 161, 162, 163, 164, 165, 166, 167, 119851, 119852, 119853, 119870, 119871, 119872, 119888,
             119889, 119890, 120104, 120105, 120106, 120123, 120124, 120125, 120141, 120142, 120143, 120335, 120336,
             120337, 120354, 120355, 120356, 120372, 120373, 120374
@@ -171,7 +171,7 @@ real_phars = [
             Feature('HACC', (16.2247, 32.8927, 21.5269)),
             Feature('HACC', (15.4769, 31.9618, 21.8863)),
         ]),
-        intbitset([
+        BitMap([
             1, 2, 4, 7, 8, 9, 36, 37, 38, 39, 84, 85, 86, 87, 159, 160, 161, 209, 210, 211, 212, 21352, 21353, 21354,
             21373, 21374, 21375, 21393, 21394, 21412, 21605, 21606, 21607, 21626, 21627, 21628, 21646, 21647, 21665,
             21836, 21837, 21838, 21857, 21858, 21859, 21877, 21878, 21896, 27159, 27160, 27161, 27181, 27182, 27183,
@@ -216,7 +216,7 @@ real_phars = [
             Feature('HACC', (105.5256, 95.6382, 104.2111)),
             Feature('HACC', (107.1440, 96.4587, 105.5403)),
         ]),
-        intbitset([
+        BitMap([
             1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42,
             43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 82, 83,
             84, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170,
@@ -1190,7 +1190,7 @@ real_phars = [
                          )
 def test_from_pharmacophore_with_defaults(phar, expected):
     fp = from_pharmacophore(phar)
-    assert fp.tolist() == expected.tolist()
+    assert fp == expected
 
 
 def test_from_pharmacophore_with_v1_fuzzyshape():
@@ -1204,7 +1204,7 @@ def test_from_pharmacophore_with_v1_fuzzyshape():
 
     fp = from_pharmacophore(phar, fuzzy_shape='v1')
 
-    expected = intbitset([
+    expected = BitMap([
         2,
         159,
         160,
@@ -1221,7 +1221,7 @@ def test_from_pharmacophore_with_v1_fuzzyshape():
         120528,  # bit_info=HHHeuv, dists=(4, 20, 21)
         120532,  # bit_info=HHHevv, dists=(4, 21, 21)
     ])
-    assert fp.tolist() == expected.tolist()
+    assert fp == expected
 
 
 def test_from_pharmacophore_with_no_fuzzy():
@@ -1233,14 +1233,14 @@ def test_from_pharmacophore_with_no_fuzzy():
 
     fp = from_pharmacophore(phar, fuzzy_factor=0)
 
-    expected = intbitset([
+    expected = BitMap([
         2,  # bit_info=H
         160,  # bit_info=HdH
         163,  # bit_info=HgH
         166,  # bit_info=HjH
         120124,  # bit_info=HHHdgj
     ])
-    assert fp.tolist() == expected.tolist()
+    assert fp == expected
 
 
 def test_from_pharmacophore_with_one_fuzzyshape():
@@ -1252,7 +1252,7 @@ def test_from_pharmacophore_with_one_fuzzyshape():
 
     fp = from_pharmacophore(phar, fuzzy_shape='one')
 
-    expected = intbitset([
+    expected = BitMap([
         2,  # bit_info=H
         159,  # bit_info=HcH
         160,  # bit_info=HdH origin
@@ -1271,4 +1271,4 @@ def test_from_pharmacophore_with_one_fuzzyshape():
         120142,  # bit_info=HHHdhj 0, 1, 0
         120355,  # bit_info=HHHegj 1, 0, 0
     ])
-    assert fp.tolist() == expected.tolist()
+    assert fp == expected

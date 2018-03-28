@@ -1,6 +1,6 @@
 import pkg_resources
 
-from intbitset import intbitset
+from pyroaring import BitMap
 
 from .bitinfo import load_bitinfo
 from .utils import calc_bins, bin_distance, calculate_distance_matrix, fuzzy_offsets
@@ -29,7 +29,7 @@ FEATURE2BIT = {
 }
 
 
-def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1, fuzzy_shape='all') -> intbitset:
+def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1, fuzzy_shape='all') -> BitMap:
     """Build a fingerprint from a pharmacophore
 
     Args:
@@ -137,4 +137,4 @@ def from_pharmacophore(pharmacophore, subs=True, fuzzy_factor=1, fuzzy_shape='al
                     bit_index = BIT_INFO[bit_info]
                     bits.add(bit_index)
 
-    return intbitset(bits)
+    return BitMap(bits)
