@@ -8,4 +8,4 @@ dependencies:
 - reduce
 - openbabel
 - pip:
-  - git+https://github.com/3D-e-Chem/kripodb.git@roaring
+  - https://github.com/3D-e-Chem/kripodb/archive/v3.0.0.tar.gz

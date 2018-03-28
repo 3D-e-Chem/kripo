@@ -24,7 +24,7 @@ It uses https://github.com/3D-e-Chem/kripodb to store output in database files.
 Usage
 -----
 
-The ligands in PDB files have no bond information so we use the ligand expo for this.
+The ligands in PDB files have no bond information so we use the ligand expo (http://ligand-expo.rcsb.org) for this.
 The ligand expo sdf file must be downloaded and indexed using:
 
 .. code-block:: bash
