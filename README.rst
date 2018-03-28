@@ -2,21 +2,8 @@
 Kripo
 =====
 
-
-.. image:: https://img.shields.io/pypi/v/kripo.svg
-        :target: https://pypi.python.org/pypi/kripo
-
 .. image:: https://img.shields.io/travis/3D-e-Chem/kripo.svg
         :target: https://travis-ci.org/3D-e-Chem/kripo
-
-.. image:: https://readthedocs.org/projects/kripo/badge/?version=latest
-        :target: https://kripo.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
-
-.. image:: https://pyup.io/repos/github/3D-e-Chem/kripo/shield.svg
-     :target: https://pyup.io/repos/github/3D-e-Chem/kripo/
-     :alt: Updates
-
 
 Key Representation of Interaction in POckets, see http://dx.doi.org/10.1186/1758-2946-6-S1-O26 for more information.
 
@@ -59,17 +46,31 @@ To host the Kripo web service the following steps must be done:
 
 .. code-block:: bash
 
+    # Fetch Uniprot, Enzyme for each PDB entry
     kripodb fragments pdb frags.db
+    # Calculate similarity scores between fingerprints pairs
     kripodb fingerprints similarities --fragmentsdbfn frags.db fingerprints.db fingerprints.db similarities.h5
-    kripodb serve similarities.h5 frags.db phars.h5
+    # Freeze similarity pairs into a matrix which can be quickly queried for most similar
+    kripodb similarities freeze similarities.h5  similarities.frozen.h5
+    # Startup the web service
+    kripodb serve similarities.frozen.h5 frags.db phars.h5
 
 Install
 -------
 
+To install run
+
 .. code-block:: bash
 
-    conda env create -f environment.yml
+    conda env create -n kripo -f environment.yml
+    conda activate kripo
     python setup.py install
+
+Conda is used to install rdkit, reduce and openbabel.
+
+You will have `kripo` and `kripodb` commands available in your PATH.
+
+For development of kripo code use `pip install -r requirements_dev.txt` instead of `python setup.py install`.
 
 Reference
 ---------
