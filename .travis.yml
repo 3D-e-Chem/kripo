@@ -11,6 +11,7 @@ before_install:
 install:
 - conda env update -f environment.yml
 - pip install -r requirements_dev.txt
+- pip install -U pluggy==0.6.0
 script: pytest --cov
 sudo: false
 cache:
