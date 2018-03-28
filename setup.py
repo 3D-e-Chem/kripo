@@ -16,9 +16,11 @@ exec(open('kripo/version.py').read())
 requirements = [
     'Click>=6.0',
     'atomium',
-    'pybel',  # conda install -c openbabel openbabel
+    'rdkit',
+    'pybel',
     'kripodb',
     'intbitset',
+    'requests',
 ]
 
 setup_requirements = [
