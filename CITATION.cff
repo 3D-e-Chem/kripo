@@ -1,0 +1,26 @@
+# YAML 1.2
+# Metadata for citation of this software according to the CFF format (https://citation-file-format.github.io/)
+cff-version: 1.0.3
+message: If you use this software, please cite it as below.
+title: Generator for key representation of interaction in pockets (kripo) fingerprints
+doi: 10.5281/zenodo.1209378
+authors:
+- given-names: Stefan
+  family-names: Verhoeven
+  affiliation: Netherlands eScience Center
+version: 1.0.0
+date-released: 2018-03-28
+repository-code: https://github.com/3D-e-Chem/kripo
+license: Apache-2.0
+references:
+- type: article
+  doi: 10.1186/1758-2946-6-S1-O26
+  title: KRIPO – a structure-based pharmacophores approach explains polypharmacological
+    effects
+  authors:
+  - given-names: Tina
+    family-names: Ritschel
+  - given-names: Tom JJ
+    family-names: Schirris
+  - given-names: Frans GM
+    family-names: Russel
