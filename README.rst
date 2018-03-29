@@ -2,8 +2,11 @@
 Kripo
 =====
 
-.. image:: https://img.shields.io/travis/3D-e-Chem/kripo.svg
-        :target: https://travis-ci.org/3D-e-Chem/kripo
+.. image:: https://travis-ci.org/3D-e-Chem/kripo.svg?branch=master
+    :target: https://travis-ci.org/3D-e-Chem/kripo
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1209378.svg
+   :target: https://doi.org/10.5281/zenodo.1209378
 
 Key Representation of Interaction in POckets, see http://dx.doi.org/10.1186/1758-2946-6-S1-O26 for more information.
 
@@ -54,6 +57,8 @@ To host the Kripo web service the following steps must be done:
     kripodb similarities freeze similarities.h5  similarities.frozen.h5
     # Startup the web service
     kripodb serve similarities.frozen.h5 frags.db phars.h5
+
+Other commands are described at http://kripodb.readthedocs.io/en/latest/cli.html .
 
 Install
 -------
