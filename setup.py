@@ -15,7 +15,7 @@ exec(open('kripo/version.py').read())
 
 requirements = [
     'Click>=6.0',
-    'atomium',
+    'atomium==0.8.0',
     'kripodb',
     'pyroaring',
     'requests',
