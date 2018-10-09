@@ -4,7 +4,7 @@ channels:
 - rdkit
 - defaults
 dependencies:
-- rdkit
+- rdkit==2018.03.4.0
 - reduce
 - openbabel
 - pip:

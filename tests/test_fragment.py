@@ -224,7 +224,7 @@ def test_hash_code__when_fragment_is_ligand(fragment1_3heg_bax: Fragment):
 def test_hash_code__when_fragment_is_not_ligand(fragment2_3heg_bax: Fragment):
     hash_code = fragment2_3heg_bax.hash_code()
 
-    expected_hash_code = '321353d33d97536e5014344e8e254dd4'
+    expected_hash_code = '88d5b594a6326908206691a497bdbe19'
     assert hash_code == expected_hash_code
 
 

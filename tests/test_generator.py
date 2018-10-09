@@ -15,14 +15,14 @@ def test_add_fragment2db(pdb_3heg, ligand_3heg_bax, fragment25_3heg_bax):
     add_fragment2db(pdb, ligand, frag_nr, fragment, db)
 
     row = db['3heg_BAX_frag25']
-    assert MolToSmiles(row['mol']) == '[*]C(=O)NC'
+    assert MolToSmiles(row['mol']) == '*C(=O)NC'
     del row['mol']  # ignore molecule, assert based on smile above
     expected_row = {
         'atom_codes': 'C29,C31,N30,O32',
         'ec_number': None,
         'frag_id': '3heg_BAX_frag25',
         'frag_nr': 25,
-        'hash_code': 'c63c1cbc858154f00089fe78fdd4b2ba',
+        'hash_code': '7bcd2ee0492f5e512ff90954a493d2be',
         'het_chain': 'A',
         'het_code': 'BAX',
         'het_seq_nr': 1,
@@ -32,7 +32,7 @@ def test_add_fragment2db(pdb_3heg, ligand_3heg_bax, fragment25_3heg_bax):
         'prot_chain': 'A',
         'prot_name': None,
         'rowid': 1,
-        'smiles': '[*]C(=O)NC',
+        'smiles': '*C(=O)NC',
         'uniprot_acc': None,
         'uniprot_name': None,
     }
