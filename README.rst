@@ -5,8 +5,8 @@ Kripo
 .. image:: https://travis-ci.org/3D-e-Chem/kripo.svg?branch=master
     :target: https://travis-ci.org/3D-e-Chem/kripo
 
-.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1209378.svg
-   :target: https://doi.org/10.5281/zenodo.1209378
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1209377.svg
+   :target: https://doi.org/10.5281/zenodo.1209377
 
 Key Representation of Interaction in POckets, see http://dx.doi.org/10.1186/1758-2946-6-S1-O26 for more information.
 
