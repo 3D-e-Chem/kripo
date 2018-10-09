@@ -38,7 +38,7 @@ setup(
     author="Stefan Verhoeven",
     author_email='s.verhoeven@esciencecenter.nl',
     url='https://github.com/3D-e-Chem/kripo',
-    packages=find_packages(include=['kripo']),
+    packages=find_packages(include=['kripo', 'kripo.*']),
     entry_points={
         'console_scripts': [
             'kripo=kripo.cli:main'
