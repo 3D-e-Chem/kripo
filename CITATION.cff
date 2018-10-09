@@ -8,7 +8,7 @@ authors:
 - given-names: Stefan
   family-names: Verhoeven
   affiliation: Netherlands eScience Center
-version: 1.0.0
+version: 1.0.1
 date-released: 2018-03-28
 repository-code: https://github.com/3D-e-Chem/kripo
 license: Apache-2.0
