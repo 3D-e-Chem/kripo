@@ -75,6 +75,12 @@ def ligands(pdb: Pdb, ligand_expo: Dict[str, Mol]) -> List[Ligand]:
     ligs = {}
     for amol in model.molecules(generic=True):
         amol_id = amol.molecule_id()
+        # Workaround for atomium 0.8 as to handle molecules with resID 0
+        # NOTE: was fixed in 0.11.1, but other changes break kripo
+        if amol_id[1:]=="":
+             amol._id = amol_id + '0'
+             amol_id = amol.molecule_id()
+        
         lig_id = pdb.code().lower() + '_' + amol.name() + '_1_' + amol_id[0] + '_' + amol_id[1:]
         try:
             lig = ligand_expo[lig_id]

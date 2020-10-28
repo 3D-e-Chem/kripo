@@ -2,6 +2,11 @@
 History
 =======
 
+1.0.2 (2020-10-28)
+------------------
+
+* Workaround for handling ligands with residue ID 0
+
 1.0.1 (2018-10-09)
 ------------------
 
